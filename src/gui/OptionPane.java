@@ -199,4 +199,37 @@ public class OptionPane extends Dialog {
 			return null;
 		}
 	}
+	
+	public static Integer showIntegerDialog(String message, int defaultValue) {
+		try {
+			String s = OptionPane.showInputDialog(message + " (" + defaultValue + ")");
+			if (s == null) return null;
+			if (!s.isEmpty()) return Integer.parseInt(s);
+		} catch(NumberFormatException ex) {
+			return null;
+		}
+		return defaultValue;
+	}
+
+	public static Float showFloatDialog(String message, float defaultValue) {
+		try {
+			String s = OptionPane.showInputDialog(message + " (" + defaultValue + ")");
+			if (s == null) return null;
+			if (!s.isEmpty()) return Float.parseFloat(s);
+		} catch(NumberFormatException ex) {
+			return null;
+		}
+		return defaultValue;
+	}
+
+	public static Double showDoubleDialog(String message, double defaultValue) {
+		try {
+			String s = OptionPane.showInputDialog(message + " (" + defaultValue + ")");
+			if (s == null) return null;
+			if (!s.isEmpty()) return Double.parseDouble(s);
+		} catch(NumberFormatException ex) {
+			return null;
+		}
+		return defaultValue;
+	}
 }
