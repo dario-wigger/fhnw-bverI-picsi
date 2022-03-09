@@ -439,12 +439,9 @@ public class TwinView extends Composite {
 			m_frequenciesEditor.close();
 			m_frequenciesEditor = null;
 		} else {
-			Shell shell = getShell();
 			// open waves
 			m_frequenciesEditor = new FrequencyEdt(getShell());
-			shell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));   	
 			m_frequenciesEditor.open(this);
-	    	if (!shell.isDisposed()) shell.setCursor(m_standardCursor);			
 		}
 	}
 	
