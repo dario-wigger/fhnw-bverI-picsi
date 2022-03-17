@@ -46,7 +46,17 @@ public class ImageProcessing {
 		return null;
 	}
 	
-	
+	/**
+	 * Helper function to create an empty image with same image type and channel order as inData
+	 * @param width
+	 * @param height
+	 * @param inData
+	 * @return created ImageData
+	 */
+	public static ImageData createImage(int width, int height, ImageData inData) {
+		return new ImageData(width, height, inData.depth, inData.palette);
+	}
+		
 	/**
 	 * Compute PSNR of two images of the same image type
 	 * @param inData1
