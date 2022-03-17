@@ -282,7 +282,7 @@ public class FFT implements IImageProcessor {
 		final int hstart = (inData.height - fsize + 1)/2; 	// hstart = ceil((h - fsize)/2), ceil corresponds to odd fsize and swapImageQuadrants
 		final int wstart = (inData.width - fsize + 1)/2; 	// wstart = ceil((w - fsize)/2)
 		
-		ImageData filter = new ImageData(inData.width, inData.height, inData.depth, inData.palette);
+		ImageData filter = ImageProcessing.createImage(inData.width, inData.height, inData);
 
 		// set box-filter to the center of filter image
 		for (int v=hstart; v < hstart + fsize; v++) {
@@ -366,7 +366,7 @@ public class FFT implements IImageProcessor {
 		final int hstart = (inData.height - fsize + 1)/2; 	// hstart = ceil((h - fsize)/2), ceil corresponds to odd fsize and swapImageQuadrants
 		final int wstart = (inData.width - fsize + 1)/2; 	// wstart = ceil((w - fsize)/2)
 		
-		ImageData filter = new ImageData(inData.width, inData.height, inData.depth, inData.palette);
+		ImageData filter = ImageProcessing.createImage(inData.width, inData.height, inData);
 
 		for (int v=hstart; v < hstart + fsize; v++) {
 			for (int u=wstart; u < wstart + fsize; u++) {

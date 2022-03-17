@@ -8,37 +8,37 @@ package imageprocessing.fourier;
  * by Stanford University in 1995 and is now freely available.
  */
 public class FHT1D {
-	private float[] tempArr;
-	private int[] bitrev;
-	private float[] C;
-	private float[] S;
+	private float[] m_tempArr;
+	private int[] m_bitrev;
+	private float[] m_C;
+	private float[] m_S;
 	
 	void initializeTables(int maxN) {
-		if (S == null) {
+		if (m_S == null) {
 			makeSinCosTables(maxN);
 			makeBitReverseTable(maxN);
-			tempArr = new float[maxN];
+			m_tempArr = new float[maxN];
 		}
 	}
 
 	void makeSinCosTables(int maxN) {
 		int n = maxN / 4;
-		C = new float[n];
-		S = new float[n];
+		m_C = new float[n];
+		m_S = new float[n];
 		double theta = 0.0;
 		double dTheta = 2.0 * Math.PI / maxN;
 		for (int i = 0; i < n; i++) {
-			C[i] = (float) Math.cos(theta);
-			S[i] = (float) Math.sin(theta);
+			m_C[i] = (float) Math.cos(theta);
+			m_S[i] = (float) Math.sin(theta);
 			theta += dTheta;
 		}
 	}
 
 	void makeBitReverseTable(int maxN) {
-		bitrev = new int[maxN];
+		m_bitrev = new int[maxN];
 		int nLog2 = log2(maxN);
 		for (int i = 0; i < maxN; i++)
-			bitrev[i] = bitRevX(i, nLog2);
+			m_bitrev[i] = bitRevX(i, nLog2);
 	}
 
 	/** Performs an optimized 1D FHT. */
@@ -48,7 +48,7 @@ public class FHT1D {
 		int Ad0, Ad1, Ad2, Ad3, Ad4, CSAd;
 		float rt1, rt2, rt3, rt4;
 
-		if (S == null)
+		if (m_S == null)
 			initializeTables(maxN);
 		Nlog2 = log2(maxN);
 		bitRevRArr(x, base, Nlog2, maxN); // bitReverse the input array
@@ -96,8 +96,8 @@ public class FHT1D {
 						Ad4 = Ad3 + gpSize;
 
 						CSAd = bfNum * numGps;
-						rt1 = x[base + Ad2] * C[CSAd] + x[base + Ad4] * S[CSAd];
-						rt2 = x[base + Ad4] * C[CSAd] - x[base + Ad2] * S[CSAd];
+						rt1 = x[base + Ad2] * m_C[CSAd] + x[base + Ad4] * m_S[CSAd];
+						rt2 = x[base + Ad4] * m_C[CSAd] - x[base + Ad2] * m_S[CSAd];
 
 						x[base + Ad2] = x[base + Ad1] - rt1;
 						x[base + Ad1] = x[base + Ad1] + rt1;
@@ -149,9 +149,9 @@ public class FHT1D {
 
 	void bitRevRArr(float[] x, int base, int bitlen, int maxN) {
 		for (int i = 0; i < maxN; i++)
-			tempArr[i] = x[base + bitrev[i]];
+			m_tempArr[i] = x[base + m_bitrev[i]];
 		for (int i = 0; i < maxN; i++)
-			x[base + i] = tempArr[i];
+			x[base + i] = m_tempArr[i];
 	}
 
 	private int bitRevX(int x, int bitlen) {

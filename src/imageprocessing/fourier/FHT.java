@@ -12,12 +12,12 @@ import utils.Complex;
  *
  */
 public class FHT extends FHT1D implements Cloneable {
-	private int width, height;
-	private boolean isFrequencyDomain;
-	private int maxN;
-	private float[] pixels;
-	private int depth;
-	private PaletteData palette;
+	private int m_width, m_height;
+	private boolean m_isFrequencyDomain;
+	private int m_maxN;
+	private float[] m_pixels;
+	private int m_depth;
+	private PaletteData m_palette;
 	
 	public FHT(ImageData inData) {
 		this(inData, 1);
@@ -29,28 +29,28 @@ public class FHT extends FHT1D implements Cloneable {
 	 * @param norm
 	 */
 	public FHT(ImageData inData, int norm) {
-		width = inData.width;
-		height = inData.height;
-		depth = inData.depth;
-		palette = inData.palette;
-		isFrequencyDomain = false;
+		m_width = inData.width;
+		m_height = inData.height;
+		m_depth = inData.depth;
+		m_palette = inData.palette;
+		m_isFrequencyDomain = false;
 		
 		int l = Math.max(inData.width, inData.height) - 1;
-		maxN = 1;
+		m_maxN = 1;
 		while(l > 0) {
 			l >>= 1;
-			maxN <<= 1;
+			m_maxN <<= 1;
 		}
-		pixels = new float[maxN*maxN];
+		m_pixels = new float[m_maxN*m_maxN];
 		
 		int iPos = 0, oPos = 0;
 		for (int v = 0; v < inData.height; v++) {
 			for (int u = 0; u < inData.width; u++) {
 				//pixels[oPos++] = inData.data[iPos++]/(float)norm; // signed values
-				pixels[oPos++] = (0xFF & inData.data[iPos++])/(float)norm; // unsigned values
+				m_pixels[oPos++] = (0xFF & inData.data[iPos++])/(float)norm; // unsigned values
 			}
 			iPos += inData.bytesPerLine - inData.width;
-			oPos += maxN - inData.width;
+			oPos += m_maxN - inData.width;
 		}
 	}
 
@@ -63,48 +63,48 @@ public class FHT extends FHT1D implements Cloneable {
 	 * @param palette
 	 */
 	public FHT(Complex[][] G, int w, int h, int depth, PaletteData palette) {
-		width = w;
-		height = h;
-		this.depth = depth;
-		this.palette = palette;
-		maxN = G.length;
-		maxN = G[0].length;
-		pixels = new float[maxN*maxN];
-		isFrequencyDomain = true;
+		m_width = w;
+		m_height = h;
+		this.m_depth = depth;
+		this.m_palette = palette;
+		m_maxN = G.length;
+		m_maxN = G[0].length;
+		m_pixels = new float[m_maxN*m_maxN];
+		m_isFrequencyDomain = true;
 		
 		int base = 0;
-		for (int row = 0; row < maxN; row++) {
-	        int offs = ((maxN - row)%maxN)*maxN;
+		for (int row = 0; row < m_maxN; row++) {
+	        int offs = ((m_maxN - row)%m_maxN)*m_maxN;
 	        
-	        for (int col = 0; col < maxN; col++) {
+	        for (int col = 0; col < m_maxN; col++) {
 	        	int omegaPlus = base + col;
-	        	int omegaNeg = offs + ((maxN - col)%maxN);
+	        	int omegaNeg = offs + ((m_maxN - col)%m_maxN);
 	        	Complex c = G[row][col];
 	        	
 	        	// compute FHT using FT
-	        	pixels[omegaPlus] = (float)(c.m_re - c.m_im);
-	        	pixels[omegaNeg]  = (float)(c.m_re + c.m_im);
+	        	m_pixels[omegaPlus] = (float)(c.m_re - c.m_im);
+	        	m_pixels[omegaNeg]  = (float)(c.m_re + c.m_im);
 	        }
-	        base += maxN;
+	        base += m_maxN;
 		}
 	}
 
 	private FHT(FHT fht2D, float[] fht) {
-		maxN = fht2D.maxN;
-		width = fht2D.width;
-		height = fht2D.height;
-		depth = fht2D.depth;
-		palette = fht2D.palette;
+		m_maxN = fht2D.m_maxN;
+		m_width = fht2D.m_width;
+		m_height = fht2D.m_height;
+		m_depth = fht2D.m_depth;
+		m_palette = fht2D.m_palette;
 		
-		assert fht.length == maxN*maxN : "fht has wrong length";
-		pixels = fht;
-		isFrequencyDomain = true;		
+		assert fht.length == m_maxN*m_maxN : "fht has wrong length";
+		m_pixels = fht;
+		m_isFrequencyDomain = true;		
 	}
 	
 	@Override
 	public FHT clone() {
-		FHT res = new FHT(this, pixels.clone());
-		isFrequencyDomain = res.isFrequencyDomain;
+		FHT res = new FHT(this, m_pixels.clone());
+		m_isFrequencyDomain = res.m_isFrequencyDomain;
 		return res;
 	}
 
@@ -114,8 +114,8 @@ public class FHT extends FHT1D implements Cloneable {
 	 * be a power of 2.
 	 */
 	public void transform() {
-		rc2DFHT(pixels, false, maxN);
-		isFrequencyDomain = true;
+		rc2DFHT(m_pixels, false, m_maxN);
+		m_isFrequencyDomain = true;
 	}
 
 	/**
@@ -124,8 +124,8 @@ public class FHT extends FHT1D implements Cloneable {
 	 * be a power of 2.
 	 */
 	public void inverseTransform() {
-		rc2DFHT(pixels, true, maxN);
-		isFrequencyDomain = false;
+		rc2DFHT(m_pixels, true, m_maxN);
+		m_isFrequencyDomain = false;
 	}
 
 	/** Performs a 2D FHT (Fast Hartley Transform). */
@@ -158,15 +158,15 @@ public class FHT extends FHT1D implements Cloneable {
 	}
 
 	public ImageData getImage() {
-		ImageData outData = new ImageData(width, height, depth, palette);
+		ImageData outData = new ImageData(m_width, m_height, m_depth, m_palette);
 		
 		int iPos = 0, oPos = 0;
 		for(int v = 0; v < outData.height; v++) {
 			for(int u = 0; u < outData.width; u++) {
-				outData.data[oPos++] = (byte)ImageProcessing.clamp8(pixels[iPos++]);	// unsigned values
+				outData.data[oPos++] = (byte)ImageProcessing.clamp8(m_pixels[iPos++]);	// unsigned values
 				//outData.data[oPos++] = (byte)ImageProcessing.signedClamp8(pixels[iPos++]);	// signed values				
 			}
-			iPos += maxN - outData.width;
+			iPos += m_maxN - outData.width;
 			oPos += outData.bytesPerLine - outData.width;
 		}
 		
@@ -174,23 +174,23 @@ public class FHT extends FHT1D implements Cloneable {
 	}
 	
 	public Complex[][] getSpectrum() {
-		if (!isFrequencyDomain)
+		if (!m_isFrequencyDomain)
 			throw new  IllegalArgumentException("Frequency domain image required");
 		
-		Complex[][] G = new Complex[maxN][maxN];
+		Complex[][] G = new Complex[m_maxN][m_maxN];
 
 		int base = 0;
-		for (int row = 0; row < maxN; row++) {
-	        final int offs = ((maxN - row)%maxN)*maxN;
+		for (int row = 0; row < m_maxN; row++) {
+	        final int offs = ((m_maxN - row)%m_maxN)*m_maxN;
 	        
-	        for (int col = 0; col < maxN; col++) {
+	        for (int col = 0; col < m_maxN; col++) {
 	        	final int omegaPlus = base + col;
-	        	final int omegaNeg = offs + ((maxN - col)%maxN);
+	        	final int omegaNeg = offs + ((m_maxN - col)%m_maxN);
 	        	
 	        	// compute FT using FHT
-	        	G[row][col] = new Complex((pixels[omegaPlus] + pixels[omegaNeg])*0.5, (-pixels[omegaPlus] + pixels[omegaNeg])*0.5);
+	        	G[row][col] = new Complex((m_pixels[omegaPlus] + m_pixels[omegaNeg])*0.5, (-m_pixels[omegaPlus] + m_pixels[omegaNeg])*0.5);
 	        }
-	        base += maxN;
+	        base += m_maxN;
 		}
 		return G;
 	}
@@ -220,21 +220,21 @@ public class FHT extends FHT1D implements Cloneable {
 	}
 
 	FHT multiply(FHT fht, boolean conjugate) {
-		float[] p1 = pixels;
-		float[] p2 = fht.pixels;
-		float[] tmp = new float[maxN*maxN];
+		float[] p1 = m_pixels;
+		float[] p2 = fht.m_pixels;
+		float[] tmp = new float[m_maxN*m_maxN];
 		
-		for (int r = 0; r < maxN; r++) {
-			final int rowMod = (maxN - r) % maxN;
+		for (int r = 0; r < m_maxN; r++) {
+			final int rowMod = (m_maxN - r) % m_maxN;
 			
-			for (int c = 0; c < maxN; c++) {
-				final int colMod = (maxN - c) % maxN;
-				final double h2e = (p2[r*maxN + c] + p2[rowMod*maxN + colMod])/2;
-				final double h2o = (p2[r*maxN + c] - p2[rowMod*maxN + colMod])/2;
+			for (int c = 0; c < m_maxN; c++) {
+				final int colMod = (m_maxN - c) % m_maxN;
+				final double h2e = (p2[r*m_maxN + c] + p2[rowMod*m_maxN + colMod])/2;
+				final double h2o = (p2[r*m_maxN + c] - p2[rowMod*m_maxN + colMod])/2;
 				if (conjugate) 
-					tmp[r*maxN + c] = (float)(p1[r*maxN + c]*h2e - p1[rowMod*maxN + colMod]*h2o);
+					tmp[r*m_maxN + c] = (float)(p1[r*m_maxN + c]*h2e - p1[rowMod*m_maxN + colMod]*h2o);
 				else
-					tmp[r*maxN + c] = (float)(p1[r*maxN + c]*h2e + p1[rowMod*maxN + colMod]*h2o);
+					tmp[r*m_maxN + c] = (float)(p1[r*m_maxN + c]*h2e + p1[rowMod*m_maxN + colMod]*h2o);
 			}
 		}
 		return new FHT(this, tmp);
@@ -245,22 +245,22 @@ public class FHT extends FHT1D implements Cloneable {
 		the frequency domain. Division in the frequency domain is equivalent 
 		to deconvolution in the space domain. */
 	public FHT divide(FHT fht) {
-		float[] p1 = pixels;
-		float[] p2 = fht.pixels;
-		float[] out = new float[maxN*maxN];
+		float[] p1 = m_pixels;
+		float[] p2 = fht.m_pixels;
+		float[] out = new float[m_maxN*m_maxN];
 		
-		for (int r = 0; r < maxN; r++) {
-			final int rowMod = (maxN - r) % maxN;
+		for (int r = 0; r < m_maxN; r++) {
+			final int rowMod = (m_maxN - r) % m_maxN;
 			
-			for (int c = 0; c < maxN; c++) {
-				final int colMod = (maxN - c) % maxN;
+			for (int c = 0; c < m_maxN; c++) {
+				final int colMod = (m_maxN - c) % m_maxN;
 				
-				double mag = p2[r*maxN + c] * p2[r*maxN + c] + p2[rowMod*maxN + colMod]*p2[rowMod*maxN + colMod];
+				double mag = p2[r*m_maxN + c] * p2[r*m_maxN + c] + p2[rowMod*m_maxN + colMod]*p2[rowMod*m_maxN + colMod];
 				if (mag < 1e-20) mag = 1e-20;
-				final double h2e = (p2[r*maxN + c] + p2[rowMod*maxN + colMod]);
-				final double h2o = (p2[r*maxN + c] - p2[rowMod*maxN + colMod]);
-				final double tmp = (p1[r*maxN + c]*h2e - p1[rowMod*maxN + colMod]*h2o);
-				out[r*maxN + c] = (float)(tmp/mag);
+				final double h2e = (p2[r*m_maxN + c] + p2[rowMod*m_maxN + colMod]);
+				final double h2o = (p2[r*m_maxN + c] - p2[rowMod*m_maxN + colMod]);
+				final double tmp = (p1[r*m_maxN + c]*h2e - p1[rowMod*m_maxN + colMod]*h2o);
+				out[r*m_maxN + c] = (float)(tmp/mag);
 			}
 		}
 		return new FHT(this, out);
@@ -270,14 +270,14 @@ public class FHT extends FHT1D implements Cloneable {
 	public boolean equals(Object o) {
 		if (o instanceof FHT) {
 			FHT fht = (FHT)o;
-			if (width != fht.width) return false;
-			if (height != fht.height) return false;
-			if (isFrequencyDomain != fht.isFrequencyDomain) return false;
-			if (maxN != fht.maxN) return false;
-			if (depth != fht.depth) return false;
-			final int size = height*width;
+			if (m_width != fht.m_width) return false;
+			if (m_height != fht.m_height) return false;
+			if (m_isFrequencyDomain != fht.m_isFrequencyDomain) return false;
+			if (m_maxN != fht.m_maxN) return false;
+			if (m_depth != fht.m_depth) return false;
+			final int size = m_height*m_width;
 			for(int i = 0; i < size; i++) {
-				if (pixels[i] != fht.pixels[i]) return false;
+				if (m_pixels[i] != fht.m_pixels[i]) return false;
 			}
 			return true;
 		} else {
@@ -286,11 +286,11 @@ public class FHT extends FHT1D implements Cloneable {
 	}
 	
 	public void round() {
-		assert !isFrequencyDomain : "frequency domain is not expected";
+		assert !m_isFrequencyDomain : "frequency domain is not expected";
 	
-		final int size = height*width;
+		final int size = m_height*m_width;
 		for(int i = 0; i < size; i++) {
-			pixels[i] = Math.round(pixels[i]);
+			m_pixels[i] = Math.round(m_pixels[i]);
 		}
 	}
 }
