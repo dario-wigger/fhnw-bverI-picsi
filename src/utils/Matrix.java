@@ -32,9 +32,11 @@ public class Matrix {
 	
 	/**
 	 * Matrix addition: A += m
-	 * @param m adds matrix m to this
+	 * where A is this matrix
+	 * @param m matrix
+	 * @return this matrix A
 	 */
-	public void plus(Matrix m) {
+	public Matrix plus(Matrix m) {
 		assert nRows() == m.nRows() && nCols() == m.nCols() : "different dimensions";
 		
 		for (int i=0; i < nRows(); i++) {
@@ -42,13 +44,16 @@ public class Matrix {
 				m_data[i][j] += m.m_data[i][j];
 			}
 		}
+		return this;
 	}
 
 	/**
-	 * Matrix subtraction: A -= m
-	 * @param m subtracts matrix m from this
+	 * Matrix addition: A -= m
+	 * where A is this matrix
+	 * @param m matrix
+	 * @return this matrix A
 	 */
-	public void minus(Matrix m) {
+	public Matrix minus(Matrix m) {
 		assert nRows() == m.nRows() && nCols() == m.nCols() : "different dimensions";
 		
 		for (int i=0; i < nRows(); i++) {
@@ -56,24 +61,29 @@ public class Matrix {
 				m_data[i][j] -= m.m_data[i][j];
 			}
 		}
+		return this;
 	}
 	
 	/**
-	 * Matrix multiplication with scalar d: A = d*A
-	 * @param d
+	 * Matrix multiplication with scalar: A *= d
+	 * where A is this matrix
+	 * @param d scalar
+	 * @return this matrix A
 	 */
-	public void multiply(double d) {
+	public Matrix multiply(double d) {
 		for (int i=0; i < nRows(); i++) {
 			for (int j=0; j < nCols(); j++) {
 				m_data[i][j] *= d;
 			}
 		}
+		return this;
 	}
 	
 	/**
-	 * Matrix-vector multiplication y = A*v, where A is this matrix and v the input vector
+	 * Matrix-vector multiplication y = A*v
+	 * where A is this matrix
 	 * @param v input vector
-	 * @return resulting vector
+	 * @return resulting vector y
 	 */
 	public double[] multiply(double[] v) {
 		assert nCols() == v.length : "incompatible dimensions";
@@ -90,9 +100,10 @@ public class Matrix {
 	}
 	
 	/**
-	 * Matrix-matrix multiplication A*m, where A is this matrix and m the input matrix
-	 * @param m 
-	 * @return resulting matrix
+	 * Matrix-matrix multiplication res = A*m
+	 * where A is this matrix
+	 * @param m matrix
+	 * @return resulting matrix res
 	 */
 	public Matrix multiply(Matrix m) {
 		assert nCols() == m.nRows() : "incompatible dimensions";
@@ -109,7 +120,7 @@ public class Matrix {
 		}
 		return res;
 	}
-	
+
 	/**
 	 * Matrix transposition
 	 * @return transposed matrix
