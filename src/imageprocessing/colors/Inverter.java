@@ -5,7 +5,6 @@ import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 
 import imageprocessing.IImageProcessor;
-import main.Picsi;
 import utils.Parallel;
 
 /**
