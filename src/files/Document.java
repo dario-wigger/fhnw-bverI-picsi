@@ -4,7 +4,7 @@ import javax.swing.JTextArea;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 
-import main.Picsi;
+import imageprocessing.ImageProcessing;
 
 /**
  * Image document class
@@ -165,7 +165,7 @@ public class Document {
 	 */
 	public void setImage(ImageData imageData) {
 		m_image = imageData;
-		m_imageType = Picsi.determineImageType(imageData);
+		m_imageType = ImageProcessing.determineImageType(imageData);
 	}
 
 }

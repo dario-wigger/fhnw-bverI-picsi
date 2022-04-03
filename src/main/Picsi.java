@@ -9,8 +9,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.PaletteData;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -32,9 +30,10 @@ public class Picsi {
 	public static final int IMAGE_TYPE_RGB = 4;
 	public static final int IMAGE_TYPE_INDEXED = 8;
 	public static final int IMAGE_TYPE_GRAY32 = 16;
+	public static final int IMAGE_TYPE_RGBA = 32;
 
 	public static final String APP_NAME = "FHNW Picsi";
-	public static final String APP_VERSION = "2.15.2022.06 (Student)"; // major.minor.year.week
+	public static final String APP_VERSION = "2.16.2022.13 (Student)"; // major.minor.year.week
 	public static final String APP_COPYRIGHT = "Copyright \u00a9 " + new GregorianCalendar().get(Calendar.YEAR) 
 			+ "\nUniversity of Applied Sciences Northwestern Switzerland\nFHNW School of Engineering, IMVS\nWindisch, Switzerland";
 	public static final String APP_URL = "https://gitlab.fhnw.ch/christoph.stamm/picsi-student";
@@ -123,44 +122,6 @@ public class Picsi {
 	}
 	
 	/**
-	 * Determine image type depending on given image data
-	 * @param imageData
-	 * @return image type
-	 */
-	public static int determineImageType(ImageData imageData) {
-		if (imageData.depth == 1) {
-			return Picsi.IMAGE_TYPE_BINARY;
-		} else {
-			if (imageData.palette.isDirect) {
-				PaletteData palette = imageData.palette;
-				
-				if (imageData.depth == 8 && (palette.blueMask & palette.greenMask & palette.redMask) == 0xFF) {
-					return Picsi.IMAGE_TYPE_GRAY;
-				} else if (imageData.depth == 32 && (palette.blueMask & palette.greenMask & palette.redMask) == -1) {
-					return Picsi.IMAGE_TYPE_GRAY32;
-				} else {
-					return Picsi.IMAGE_TYPE_RGB;
-				}
-			} else {
-				// indexed "color" image
-
-				// check the palette
-				if (imageData.depth == 8) {
-					RGB[] rgbs = imageData.getRGBs();
-					
-					// check for grayscale
-					int i = 0;
-					while(i < rgbs.length && rgbs[i].blue == rgbs[i].green && rgbs[i].green == rgbs[i].red) i++;
-					if (i >= rgbs.length) {
-						return Picsi.IMAGE_TYPE_GRAY;
-					}
-				}
-				return Picsi.IMAGE_TYPE_INDEXED;
-			}
-		}
-	}
-	
-	/**
 	 * Return image type specific short name
 	 * @param imageType
 	 * @return
@@ -171,6 +132,7 @@ public class Picsi {
 		case IMAGE_TYPE_GRAY: return "Gray";
 		case IMAGE_TYPE_RGB: return "RGB";
 		case IMAGE_TYPE_INDEXED: return "Indexed";
+		case IMAGE_TYPE_RGBA: return "RGBA";
 		default:
 			assert false;
 			return "Unknown";

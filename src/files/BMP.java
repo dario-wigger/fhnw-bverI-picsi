@@ -9,6 +9,8 @@ import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 
+import imageprocessing.ImageProcessing;
+
 /**
  * Windows bitmaps (Windows image file type) supports BMP, GIF, ICO, JPG, PNG, TIF image file types
  * @author Christoph Stamm
@@ -45,7 +47,7 @@ public class BMP implements IImageFile {
 
 	@Override
 	public void displayTextOfBinaryImage(ImageData imageData, JTextArea text) {
-		int imageType = Picsi.determineImageType(imageData);
+		int imageType = ImageProcessing.determineImageType(imageData);
 		
 		switch(imageType) {
 		case Picsi.IMAGE_TYPE_BINARY:

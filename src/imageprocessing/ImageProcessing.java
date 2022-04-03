@@ -18,11 +18,49 @@ import main.Picsi;
  */
 public class ImageProcessing {
 	/**
+	 * Determine image type depending on given image data
+	 * @param imageData
+	 * @return image type
+	 */
+	public static int determineImageType(ImageData imageData) {
+		if (imageData.depth == 1) {
+			return Picsi.IMAGE_TYPE_BINARY;
+		} else {
+			if (imageData.palette.isDirect) {
+				PaletteData palette = imageData.palette;
+				
+				if (imageData.depth == 8 && (palette.blueMask & palette.greenMask & palette.redMask) == 0xFF) {
+					return Picsi.IMAGE_TYPE_GRAY;
+				} else if (imageData.depth == 32 && (palette.blueMask & palette.greenMask & palette.redMask) == -1) {
+					return Picsi.IMAGE_TYPE_GRAY32;
+				} else {
+					return (imageData.getTransparencyType() == SWT.TRANSPARENCY_ALPHA) ? Picsi.IMAGE_TYPE_RGBA : Picsi.IMAGE_TYPE_RGB;
+				}
+			} else {
+				// indexed "color" image
+
+				// check the palette
+				if (imageData.depth == 8) {
+					RGB[] rgbs = imageData.getRGBs();
+					
+					// check for grayscale
+					int i = 0;
+					while(i < rgbs.length && rgbs[i].blue == rgbs[i].green && rgbs[i].green == rgbs[i].red) i++;
+					if (i >= rgbs.length) {
+						return Picsi.IMAGE_TYPE_GRAY;
+					}
+				}
+				return Picsi.IMAGE_TYPE_INDEXED;
+			}
+		}
+	}
+	
+	/**
 	 * Helper function to create a binary, grayscale or RGB image.
 	 * It doesn't support indexed color images
 	 * @param width
 	 * @param height
-	 * @param imageType Picsi.IMAGE_TYPE_BINARY, Picsi.IMAGE_TYPE_GRAY, or Picsi.IMAGE_TYPE_RGB
+	 * @param imageType Picsi.IMAGE_TYPE_BINARY, Picsi.IMAGE_TYPE_GRAY, Picsi.IMAGE_TYPE_GRAY32, or Picsi.IMAGE_TYPE_RGB
 	 * @return created ImageData
 	 */
 	public static ImageData createImage(int width, int height, int imageType) {
@@ -42,10 +80,18 @@ public class ImageProcessing {
 			return new ImageData(width, height, 24, pd);
 		case Picsi.IMAGE_TYPE_GRAY32:
 			return new ImageData(width, height, 32, new PaletteData(-1, -1, -1)); // is not visualized correctly on Windows
+		case Picsi.IMAGE_TYPE_RGBA:
+			pd = new PaletteData(0xFF0000, 0xFF00, 0xFF); // R G B
+			pd.redShift = -16;
+			pd.greenShift = -8;
+			pd.blueShift = 0;
+			ImageData imageData = new ImageData(width, height, 24, pd);
+			imageData.setAlpha(0, 0, 255); // creates all alpha values
+			return imageData;
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Helper function to create an empty image with same image type and channel order as inData
 	 * @param width
@@ -54,8 +100,14 @@ public class ImageProcessing {
 	 * @return created ImageData
 	 */
 	public static ImageData createImage(int width, int height, ImageData inData) {
-		return new ImageData(width, height, inData.depth, inData.palette);
+		ImageData imageData = new ImageData(width, height, inData.depth, inData.palette);
+		
+		if (inData.getTransparencyType() == SWT.TRANSPARENCY_ALPHA) {
+			imageData.setAlpha(0, 0, 255); // creates all alpha values
+		}
+		return imageData;
 	}
+	
 		
 	/**
 	 * Compute PSNR of two images of the same image type

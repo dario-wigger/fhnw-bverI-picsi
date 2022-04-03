@@ -1,5 +1,6 @@
 package imageprocessing.colors;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.RGB;
 
@@ -13,17 +14,17 @@ import utils.Parallel;
  * @author Christoph Stamm
  *
  */
-public class ChannelRGB implements IImageProcessor {
+public class ChannelRGBA implements IImageProcessor {
 	int m_channel;
 	
-	public ChannelRGB(int channel) {
-		assert 0 <= channel && channel < 3 : "wrong channel: " + channel;
+	public ChannelRGBA(int channel) {
+		assert 0 <= channel && channel < 4 : "wrong channel: " + channel;
 		m_channel = channel;
 	}
 
 	@Override
 	public boolean isEnabled(int imageType) {
-		return imageType == Picsi.IMAGE_TYPE_RGB || imageType == Picsi.IMAGE_TYPE_INDEXED;
+		return imageType == Picsi.IMAGE_TYPE_RGBA || imageType == Picsi.IMAGE_TYPE_RGB || imageType == Picsi.IMAGE_TYPE_INDEXED;
 	}
 
 	@Override
@@ -42,6 +43,7 @@ public class ChannelRGB implements IImageProcessor {
 				case 0: outData.setPixel(u, v, rgb.red); break;
 				case 1: outData.setPixel(u, v, rgb.green); break;
 				case 2: outData.setPixel(u, v, rgb.blue); break;
+				case 3: outData.setPixel(u, v, (inData.getTransparencyType() == SWT.TRANSPARENCY_ALPHA) ? inData.getAlpha(u, v) : 0);						
 				}
 			}
 		});
