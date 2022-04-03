@@ -43,7 +43,7 @@ public class ChannelRGBA implements IImageProcessor {
 				case 0: outData.setPixel(u, v, rgb.red); break;
 				case 1: outData.setPixel(u, v, rgb.green); break;
 				case 2: outData.setPixel(u, v, rgb.blue); break;
-				case 3: outData.setPixel(u, v, (inData.getTransparencyType() == SWT.TRANSPARENCY_ALPHA) ? inData.getAlpha(u, v) : 0);						
+				case 3: outData.setPixel(u, v, (inData.getTransparencyType() == SWT.TRANSPARENCY_ALPHA) ? inData.getAlpha(u, v) : 255); // 0 = fully transparent, 255 = opaque 						
 				}
 			}
 		});
