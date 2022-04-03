@@ -33,8 +33,21 @@ public class Inverter implements IImageProcessor {
 	 * @param imageType
 	 */
 	public static void invert(ImageData imageData, int imageType) {
-		if (imageType == Picsi.IMAGE_TYPE_INDEXED) {
-			// change palette
+		if (imageData.palette.isDirect) {
+			// change pixel colors
+			Parallel.For(0, imageData.height, v -> {
+				for (int u=0; u < imageData.width; u++) {
+					int pixel = imageData.getPixel(u,v);
+					imageData.setPixel(u, v, ~pixel); 
+					/*RGB rgb = imageData.palette.getRGB(imageData.getPixel(u,v));
+					rgb.red   = 255 - rgb.red;
+					rgb.green = 255 - rgb.green;
+					rgb.blue  = 255 - rgb.blue;
+					imageData.setPixel(u, v, imageData.palette.getPixel(rgb));*/
+				}
+			});
+		} else {
+			// indexed color, binary or grayscale image: change palette
 			RGB[] paletteIn = imageData.getRGBs();
 			RGB[] paletteOut = new RGB[paletteIn.length];
 			
@@ -43,19 +56,6 @@ public class Inverter implements IImageProcessor {
 				paletteOut[i] = new RGB(255 - rgbIn.red, 255 - rgbIn.green, 255 - rgbIn.blue);
 			}
 			imageData.palette = new PaletteData(paletteOut);
-		} else {
-			// change pixel colors
-			Parallel.For(0, imageData.height, v -> {
-				for (int u=0; u < imageData.width; u++) {
-					int pixel = imageData.getPixel(u,v);
-					imageData.setPixel(u, v, ~pixel);
-					/*RGB rgb = imageData.palette.getRGB(imageData.getPixel(u,v));
-					rgb.red   = 255 - rgb.red;
-					rgb.green = 255 - rgb.green;
-					rgb.blue  = 255 - rgb.blue;
-					imageData.setPixel(u, v, imageData.palette.getPixel(rgb));*/
-				}
-			});
 		}
 	}
 }

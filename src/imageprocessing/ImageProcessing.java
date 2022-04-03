@@ -40,14 +40,15 @@ public class ImageProcessing {
 				// indexed "color" image
 
 				// check the palette
-				if (imageData.depth == 8) {
+				if (imageData.depth <= 8) {
 					RGB[] rgbs = imageData.getRGBs();
 					
-					// check for grayscale
+					// check for binary or grayscale
 					int i = 0;
 					while(i < rgbs.length && rgbs[i].blue == rgbs[i].green && rgbs[i].green == rgbs[i].red) i++;
-					if (i >= rgbs.length) {
-						return Picsi.IMAGE_TYPE_GRAY;
+					if (i == rgbs.length) {
+						if (i == 2) return Picsi.IMAGE_TYPE_BINARY;
+						else if (i == 256) return Picsi.IMAGE_TYPE_GRAY;
 					}
 				}
 				return Picsi.IMAGE_TYPE_INDEXED;
