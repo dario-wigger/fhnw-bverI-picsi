@@ -24,7 +24,7 @@ public class OptionPane extends Dialog {
 	private static final int MAX_WIDTH = 640;
 
 	private Shell m_shell;
-	private Image m_image;
+	private Image m_image; // this image should not be freed because it was allocated by the system
 	private String m_message;
 	private String m_title;
 	private Text m_text;
@@ -199,7 +199,7 @@ public class OptionPane extends Dialog {
 			return null;
 		}
 	}
-	
+
 	public static Integer showIntegerDialog(String message, int defaultValue) {
 		try {
 			String s = OptionPane.showInputDialog(message + " (" + defaultValue + ")");

@@ -1,13 +1,13 @@
 package imageprocessing;
 
-import utils.Parallel;
+import main.Picsi;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 
-import main.Picsi;
+import utils.Parallel;
 
 /**
  * Image processing class: contains widely used image processing functions

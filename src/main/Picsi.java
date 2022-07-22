@@ -33,10 +33,10 @@ public class Picsi {
 	public static final int IMAGE_TYPE_RGBA = 32;
 
 	public static final String APP_NAME = "FHNW Picsi";
-	public static final String APP_VERSION = "2.16.2022.13 (Student)"; // major.minor.year.week
+	public static final String APP_VERSION = "2.17.2022.29 (Student)"; // major.minor.year.week
 	public static final String APP_COPYRIGHT = "Copyright \u00a9 " + new GregorianCalendar().get(Calendar.YEAR) 
 			+ "\nUniversity of Applied Sciences Northwestern Switzerland\nFHNW School of Engineering, IMVS\nWindisch, Switzerland";
-	public static final String APP_URL = "https://gitlab.fhnw.ch/christoph.stamm/picsi-student";
+	public static final String APP_URL = "https://gitlab.fhnw.ch/magb/picsi-student";
 	
 	public static Shell s_shell;
 	

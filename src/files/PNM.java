@@ -201,21 +201,13 @@ public class PNM implements IImageFile {
 	 * @param text
 	 */
 	public static void writePBM(ImageData imageData, JTextArea text) {
-		assert imageData.depth == 1 : "wrong channel depth";
-		byte[] data = imageData.data;
-		int pos = 0;
 		StringBuilder sb = new StringBuilder(imageData.width*2);
-		int stride = (imageData.width + 7)/8;
-		
-		for (int y = 0; y < imageData.height; y++) {
-			int w = 0;
-			for (int x = 0; x < stride; x++) {
-				int val = data[pos++] << 24;
-				for(int i = 0; i < 8 && w < imageData.width; i++, w++) {
-					sb.append(val < 0 ? 1 : 0).append(' ');
-					val <<= 1;
-				}
-			}
+
+		for (int v = 0; v < imageData.height; v++) {
+ 			for(int u = 0; u < imageData.width; u++) {
+				sb.append(imageData.getPixel(u, v)).append(' ');
+ 				
+ 			}
 			text.append(sb.toString());
 			text.append("\n");
 			sb.delete(0, sb.length());

@@ -124,6 +124,7 @@ public class MRU {
 		m_mru.put("0", fileName);
 		updateMenu();		
 	}
+
 	
 	/**
 	 * Removes a file name from MRU list

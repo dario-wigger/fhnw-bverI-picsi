@@ -51,8 +51,7 @@ public class Editor extends JFrame {
 			jToolBar.setFloatable(false);
 			{
 				jSaveBtn = new JButton();
-				jSaveBtn.setIcon(new ImageIcon(getClass().getClassLoader().getResource("images/saveHS.png")));
-				//jSaveBtn.setMnemonic(KeyEvent.VK_S);
+				jSaveBtn.setIcon(new ImageIcon(getClass().getClassLoader().getResource("images/Save.png")));
 				jSaveBtn.setToolTipText("Save");
 				jSaveBtn.addActionListener(new ActionListener() {
 					@Override
@@ -64,7 +63,7 @@ public class Editor extends JFrame {
 			}
 			{
 				jSaveAsBtn = new JButton();
-				jSaveAsBtn.setIcon(new ImageIcon(getClass().getClassLoader().getResource("images/saveAsHS.png")));
+				jSaveAsBtn.setIcon(new ImageIcon(getClass().getClassLoader().getResource("images/SaveAs.png")));
 				jSaveAsBtn.setToolTipText("Save As");
 				jSaveAsBtn.addActionListener(new ActionListener() {
 					@Override

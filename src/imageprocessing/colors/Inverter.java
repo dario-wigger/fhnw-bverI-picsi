@@ -23,6 +23,7 @@ public class Inverter implements IImageProcessor {
 	public ImageData run(ImageData inData, int imageType) {
 		ImageData outData = (ImageData)inData.clone();
 		invert(outData, imageType);
+
 		return outData;
 	}
 
@@ -33,11 +34,11 @@ public class Inverter implements IImageProcessor {
 	 */
 	public static void invert(ImageData imageData, int imageType) {
 		if (imageData.palette.isDirect) {
-			// change pixel colors
+			// no palette: change pixel colors
 			Parallel.For(0, imageData.height, v -> {
 				for (int u=0; u < imageData.width; u++) {
 					int pixel = imageData.getPixel(u,v);
-					imageData.setPixel(u, v, ~pixel); 
+					imageData.setPixel(u, v, ~pixel); // don't use ~pixel in case of an indirect palette, because the resulting value might be larger than the palette size
 					/*RGB rgb = imageData.palette.getRGB(imageData.getPixel(u,v));
 					rgb.red   = 255 - rgb.red;
 					rgb.green = 255 - rgb.green;

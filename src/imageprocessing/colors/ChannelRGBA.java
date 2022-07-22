@@ -10,7 +10,7 @@ import main.Picsi;
 import utils.Parallel;
 
 /**
- * RGB channel visualizer
+ * RGBA channel visualizer
  * @author Christoph Stamm
  *
  */

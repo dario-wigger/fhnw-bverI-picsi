@@ -12,7 +12,14 @@ import java.io.IOException;
 public interface IImageCreator {
 
 	/**
-	 * Write image matrix of given size and image type into the provided print writer
+	 * Write image matrix of given size and image type into the provided print writer.
+	 * Usage: Inside Picsi image editor write: 
+	 * 	P2
+	 * 	w h
+	 * 	max
+	 * 	@files.ClassName
+	 * where ClassName is an instance of IImageCreator
+	 * 	
 	 * @param pw print writer for writing image matrix in ASCII mode
 	 * @param imageType one of the image types define in Globl.IMAGE_TYPE_XXX
 	 * @param width image width in pixels

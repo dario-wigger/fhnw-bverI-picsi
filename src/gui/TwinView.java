@@ -157,7 +157,7 @@ public class TwinView extends Composite {
 		return m_lineViewer != null;
 	}
 	
-	public boolean hasWaves() {
+	public boolean hasFrequencies() {
 		return m_frequenciesEditor != null;
 	}
 

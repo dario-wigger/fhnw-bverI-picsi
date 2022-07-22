@@ -103,6 +103,24 @@ public class Complex {
 	}
 	
 	/**
+	 * Complex addition
+	 * @param c
+	 */
+	public void plus(Complex c) {
+		m_re += c.m_re;
+		m_im += c.m_im;
+	}
+	
+	/**
+	 * Complex subtraction
+	 * @param c
+	 */
+	public void minus(Complex c) {
+		m_re -= c.m_re;
+		m_im -= c.m_im;		
+	}
+	
+	/**
 	 * Complex multiplication: this := this*c
 	 * @param c
 	 */

@@ -32,6 +32,7 @@ public class MainWindow {
 
 	private Shell m_shell;		// sub-classing of Shell is not allowed, therefore containing
 	private Display m_display;
+    private Clipboard m_clipboard; 
 	private Editor m_editor;
 	private String m_lastPath; // used to seed the file dialog
 	private Label m_statusLabel, m_zoomLabel;
@@ -48,6 +49,7 @@ public class MainWindow {
 		// create a window and set its title
 		m_display = dpy;
 		m_shell = new Shell(m_display);
+		m_clipboard = new Clipboard(m_display);
 		{
 			GridLayout gridLayout = new GridLayout();
 			gridLayout.marginLeft = 5;
@@ -416,16 +418,8 @@ public class MainWindow {
 	
 	// File menu
 	private void createFileMenu(Menu menuBar) {	
-		final int OPENRUNLAST = 2;
-		final int CLOSEINPUT = 5;
-		final int CLOSEOUTPUT = 6;
-		final int CLOSEBOTH = 7;
-		final int SAVE = 9;
-		final int SAVEAS = 10;
-		final int SAVEINPAS = 11;
-		final int EDIT = 13;
-		final int PRINT = 15;
-		final int SWAP = 17;
+		enum ME { New, Open, Run, Recent, Sep1, Copy, Paste, Sep2, CloseIn, CloseOut, CloseBoth, 
+			Sep3, Save, SaveOut, SaveIn, Sep4, Edit, Sep5, Print, Sep6, Swap, Sep7, Exit };
 		
 		// File menu
 		MenuItem item = new MenuItem(menuBar, SWT.CASCADE);
@@ -436,16 +430,17 @@ public class MainWindow {
 			@Override
 			public void handleEvent(Event e) {
 				MenuItem[] menuItems = fileMenu.getItems();
-				menuItems[OPENRUNLAST].setEnabled(m_mru.getLastOperation() != null);
-				menuItems[CLOSEINPUT].setEnabled(!m_views.isEmpty());
-				menuItems[CLOSEOUTPUT].setEnabled(m_views.hasSecondView());
-				menuItems[CLOSEBOTH].setEnabled(m_views.hasSecondView());
-				menuItems[SAVE].setEnabled(m_views.hasSecondView());
-				menuItems[SAVEAS].setEnabled(m_views.hasSecondView());
-				menuItems[SAVEINPAS].setEnabled(!m_views.isEmpty());
-				menuItems[EDIT].setEnabled(!m_views.isEmpty());
-				menuItems[PRINT].setEnabled(!m_views.isEmpty());
-				menuItems[SWAP].setEnabled(!m_views.isEmpty());
+				menuItems[ME.Run.ordinal()].setEnabled(m_mru.getLastOperation() != null);
+				menuItems[ME.Copy.ordinal()].setEnabled(m_views.hasSecondView());
+				menuItems[ME.CloseIn.ordinal()].setEnabled(!m_views.isEmpty());
+				menuItems[ME.CloseOut.ordinal()].setEnabled(m_views.hasSecondView());
+				menuItems[ME.CloseBoth.ordinal()].setEnabled(m_views.hasSecondView());
+				menuItems[ME.Save.ordinal()].setEnabled(m_views.hasSecondView());
+				menuItems[ME.SaveOut.ordinal()].setEnabled(m_views.hasSecondView());
+				menuItems[ME.SaveIn.ordinal()].setEnabled(!m_views.isEmpty());
+				menuItems[ME.Edit.ordinal()].setEnabled(!m_views.isEmpty());
+				menuItems[ME.Print.ordinal()].setEnabled(!m_views.isEmpty());
+				menuItems[ME.Swap.ordinal()].setEnabled(!m_views.isEmpty());
 			}
 		});
 		
@@ -453,7 +448,7 @@ public class MainWindow {
 		item = new MenuItem(fileMenu, SWT.PUSH);
 		item.setText("&New...\tCtrl+N");
 		item.setAccelerator(SWT.MOD1 + 'N');
-		setIcon(item, "images/newHS.png");
+		setIcon(item, "images/NewDocument.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -465,7 +460,7 @@ public class MainWindow {
 		item = new MenuItem(fileMenu, SWT.PUSH);
 		item.setText("&Open...\tCtrl+O");
 		item.setAccelerator(SWT.MOD1 + 'O');
-		setIcon(item, "images/openHS.png");
+		setIcon(item, "images/OpenFolder.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -489,7 +484,7 @@ public class MainWindow {
 		item = new MenuItem(fileMenu, SWT.PUSH);
 		item.setText("Open and Run Last\tCtrl+D");
 		item.setAccelerator(SWT.MOD1 + 'D');
-		//setIcon(item, "images/newHS.png");
+		setIcon(item, "images/OpenFile.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -514,9 +509,49 @@ public class MainWindow {
 		
 		new MenuItem(fileMenu, SWT.SEPARATOR);
 		
+		// File -> Copy
+		item = new MenuItem(fileMenu, SWT.CASCADE);
+		item.setText("Copy Output\tCtrl+C");
+		item.setAccelerator(SWT.MOD1 + 'C');
+		setIcon(item, "images/Copy.png");
+	    item.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				ImageTransfer imageTransfer = ImageTransfer.getInstance();
+				m_clipboard.setContents(new Object[] { m_views.getImage(false) }, new Transfer[] { imageTransfer });
+			}
+		});
+
+		// File -> Paste
+		item = new MenuItem(fileMenu, SWT.CASCADE);
+		item.setText("Paste Input\tCtrl+V");
+		item.setAccelerator(SWT.MOD1 + 'V');
+		setIcon(item, "images/Paste.png");
+	    item.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				TransferData[] types = m_clipboard.getAvailableTypes();
+				
+				for(TransferData type : types) {			
+			        if (ImageTransfer.getInstance().isSupportedType(type)) {
+			        	// image transfer
+			        	ImageData inData = (ImageData)m_clipboard.getContents(ImageTransfer.getInstance());
+						String name = "Image";
+						m_views.showImageInFirstView(inData, name);
+			        } else if (FileTransfer.getInstance().isSupportedType(type)) {
+			        	// file transfer
+			        	String[] fileNames = (String[])m_clipboard.getContents(FileTransfer.getInstance());
+						m_mru.moveFileNameToTop(-1, fileNames[0]);
+						updateFile(fileNames[0]);
+			        }
+				}
+			}
+		});
+
+		new MenuItem(fileMenu, SWT.SEPARATOR);
+
 		// File -> Close Input
 		item = new MenuItem(fileMenu, SWT.PUSH);
 		item.setText("Close Input");
+		setIcon(item, "images/CloseDocument.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -546,6 +581,7 @@ public class MainWindow {
 		// File -> Close Output
 		item = new MenuItem(fileMenu, SWT.PUSH);
 		item.setText("Close Output");
+		setIcon(item, "images/CloseDocument.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -582,7 +618,7 @@ public class MainWindow {
 		item = new MenuItem(fileMenu, SWT.PUSH);
 		item.setText("&Save Output\tCtrl+S");
 		item.setAccelerator(SWT.MOD1 + 'S');
-		setIcon(item, "images/saveHS.png");
+		setIcon(item, "images/Save.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -593,7 +629,7 @@ public class MainWindow {
 		// File -> Save As...
 		item = new MenuItem(fileMenu, SWT.PUSH);
 		item.setText("Save Output As...");
-		setIcon(item, "images/saveAsHS.png");
+		setIcon(item, "images/SaveAs.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -604,7 +640,7 @@ public class MainWindow {
 		// File -> Save Input As...
 		item = new MenuItem(fileMenu, SWT.PUSH);
 		item.setText("Save Input As...");
-		setIcon(item, "images/saveAsHS.png");
+		setIcon(item, "images/SaveAs.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -618,7 +654,7 @@ public class MainWindow {
 		m_editMenuItem = new MenuItem(fileMenu, SWT.PUSH);
 		m_editMenuItem.setText("&Edit...\tCtrl+E");
 		m_editMenuItem.setAccelerator(SWT.MOD1 + 'E');
-		setIcon(m_editMenuItem, "images/editHS.png");
+		setIcon(m_editMenuItem, "images/EditDocument.png");
 		m_editMenuItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -654,7 +690,7 @@ public class MainWindow {
 		item = new MenuItem(fileMenu, SWT.PUSH);
 		item.setText("&Print...\tCtrl+P");
 		item.setAccelerator(SWT.MOD1 + 'P');
-		setIcon(item, "images/printHS.png");
+		setIcon(item, "images/PrintDocument.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -694,6 +730,7 @@ public class MainWindow {
 		item = new MenuItem(fileMenu, SWT.PUSH);
 		item.setText("Swap &Images\tCtrl+I");
 		item.setAccelerator(SWT.MOD1 + 'I');
+		setIcon(item, "images/Swap.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -712,6 +749,7 @@ public class MainWindow {
 		// File -> Exit
 		item = new MenuItem(fileMenu, SWT.PUSH);
 		item.setText("E&xit");
+		setIcon(item, "images/Exit.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -808,6 +846,7 @@ public class MainWindow {
 		});
 		item = new MenuItem(hsv, SWT.PUSH);
 		item.setText("Color Wheel");
+		setIcon(item, "images/ColorWheel.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -901,6 +940,7 @@ public class MainWindow {
 		});
 		item = new MenuItem(lab, SWT.PUSH);
 		item.setText("Color Wheel");
+		setIcon(item, "images/ColorWheel.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -912,11 +952,7 @@ public class MainWindow {
 	
 	// Tools menu
 	private void createToolsMenu(Menu menuBar) {
-		final int SHOWCOLORTABLE = 0;
-		final int SHOWHISTOGRAM = 1;
-		final int SHOWLINE = 2;
-		final int SHOWPSNR = 3;
-		final int SHOWWAVES = 4;
+		enum ME { ColorTable, Histogram, Line, PSNR, FFT };
 		
 		MenuItem item = new MenuItem(menuBar, SWT.CASCADE);
 		item.setText("&Tools");
@@ -926,21 +962,21 @@ public class MainWindow {
 			@Override
 			public void handleEvent(Event e) {
 				MenuItem[] menuItems = windowMenu.getItems();
-				menuItems[SHOWCOLORTABLE].setEnabled(!m_views.isEmpty() && (m_views.getImageType(true) != Picsi.IMAGE_TYPE_RGB ||
+				menuItems[ME.ColorTable.ordinal()].setEnabled(!m_views.isEmpty() && (m_views.getImageType(true) != Picsi.IMAGE_TYPE_RGB ||
 						(m_views.hasSecondView() && (m_views.getImageType(false) != Picsi.IMAGE_TYPE_RGB))
 				));
-				menuItems[SHOWCOLORTABLE].setSelection(m_views.hasColorTable());		
-				menuItems[SHOWHISTOGRAM].setEnabled(!m_views.isEmpty());
-				menuItems[SHOWHISTOGRAM].setSelection(m_views.hasHistogram());		
-				menuItems[SHOWLINE].setEnabled(!m_views.isEmpty());
-				menuItems[SHOWLINE].setSelection(m_views.hasLineViewer());						
-				menuItems[SHOWPSNR].setEnabled(!m_views.isEmpty() && m_views.hasSecondView() 
+				menuItems[ME.ColorTable.ordinal()].setSelection(m_views.hasColorTable());		
+				menuItems[ME.Histogram.ordinal()].setEnabled(!m_views.isEmpty());
+				menuItems[ME.Histogram.ordinal()].setSelection(m_views.hasHistogram());		
+				menuItems[ME.Line.ordinal()].setEnabled(!m_views.isEmpty());
+				menuItems[ME.Line.ordinal()].setSelection(m_views.hasLineViewer());						
+				menuItems[ME.PSNR.ordinal()].setEnabled(!m_views.isEmpty() && m_views.hasSecondView() 
 						&& m_views.getImageType(true) == m_views.getImageType(false) 
 						&& m_views.getView(true).getImageHeight() == m_views.getView(false).getImageHeight()
 						&& m_views.getView(true).getImageWidth() == m_views.getView(false).getImageWidth()
 				);
-				menuItems[SHOWWAVES].setEnabled(!m_views.isEmpty() && m_views.getImageType(true) == Picsi.IMAGE_TYPE_GRAY);
-				menuItems[SHOWWAVES].setSelection(m_views.hasWaves());		
+				menuItems[ME.FFT.ordinal()].setEnabled(!m_views.isEmpty() && m_views.getImageType(true) == Picsi.IMAGE_TYPE_GRAY);
+				menuItems[ME.FFT.ordinal()].setSelection(m_views.hasFrequencies());		
 			}
 		});
 
@@ -948,6 +984,7 @@ public class MainWindow {
 		item = new MenuItem(windowMenu, SWT.CHECK);
 		item.setText("Color &Table...\tCtrl+T");
 		item.setAccelerator(SWT.MOD1 + 'T');
+		setIcon(item, "images/ColorPalette.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -1026,11 +1063,7 @@ public class MainWindow {
 	
 	// Window menu
 	private void createWindowMenu(Menu menuBar) {
-		final int AUTO_ZOOM = 0;
-		final int ORIGINAL_SIZE = 1;
-		final int SYNCHRONIZE = 2;
-		final int SHOWOUTPUT = 4;
-		final int AVERAGECOLOR = 6;
+		enum ME { AutoZoom, Original, Synch, Sep1, Output, Sep2, Mean };
 		
 		MenuItem item = new MenuItem(menuBar, SWT.CASCADE);
 		item.setText("&Window");
@@ -1040,13 +1073,13 @@ public class MainWindow {
 			@Override
 			public void handleEvent(Event e) {
 				MenuItem[] menuItems = windowMenu.getItems();
-				menuItems[AUTO_ZOOM].setSelection(m_views.hasAutoZoom());
-				menuItems[ORIGINAL_SIZE].setEnabled(!m_views.isEmpty());
-				menuItems[SYNCHRONIZE].setEnabled(!m_views.isEmpty());
-				menuItems[SYNCHRONIZE].setSelection(m_views.isSynchronized());
-				menuItems[SHOWOUTPUT].setEnabled(!m_views.isEmpty());
-				menuItems[SHOWOUTPUT].setSelection(m_views.hasSecondView());
-				menuItems[AVERAGECOLOR].setSelection(m_views.useMeanColor());
+				menuItems[ME.AutoZoom.ordinal()].setSelection(m_views.hasAutoZoom());
+				menuItems[ME.Original.ordinal()].setEnabled(!m_views.isEmpty());
+				menuItems[ME.Synch.ordinal()].setEnabled(!m_views.isEmpty());
+				menuItems[ME.Synch.ordinal()].setSelection(m_views.isSynchronized());
+				menuItems[ME.Output.ordinal()].setEnabled(!m_views.isEmpty());
+				menuItems[ME.Output.ordinal()].setSelection(m_views.hasSecondView());
+				menuItems[ME.Mean.ordinal()].setSelection(m_views.useMeanColor());
 			}
 		});
 
@@ -1054,6 +1087,7 @@ public class MainWindow {
 		item = new MenuItem(windowMenu, SWT.CHECK);
 		item.setText("&Auto Zoom\tCtrl+A");
 		item.setAccelerator(SWT.MOD1 + 'A');
+		setIcon(item, "images/ZoomToFit.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -1066,6 +1100,7 @@ public class MainWindow {
 		item = new MenuItem(windowMenu, SWT.PUSH);
 		item.setText("Original Si&ze\tCtrl+Z");
 		item.setAccelerator(SWT.MOD1 + 'Z');
+		setIcon(item, "images/ZoomToWidth.png");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -1168,7 +1203,7 @@ public class MainWindow {
 		}
 	}
 	
-	private void setIcon(Item item, String resourceName) {
+	public void setIcon(Item item, String resourceName) {
 		try {
 			item.setImage(new Image(m_display, getClass().getClassLoader().getResource(resourceName).openStream()));			
 		} catch(IOException e) {
