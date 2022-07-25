@@ -540,11 +540,7 @@ public class PNM implements IImageFile {
 			}
 					
 			// create image
-			PaletteData pd = new PaletteData(0xFF0000, 0xFF00, 0xFF);
-			pd.blueShift = 0;
-			pd.greenShift = -8;
-			pd.redShift = -16;
-			return new ImageData(m_width, m_height, bypp*8, pd, 1, data);
+			return new ImageData(m_width, m_height, bypp*8, new PaletteData(0xFF0000, 0xFF00, 0xFF), 1, data); // LSB is R
 			
 		} finally {
 			in.close();
@@ -571,11 +567,7 @@ public class PNM implements IImageFile {
 			}			
 			
 			// create image
-			PaletteData pd = new PaletteData(0xFF0000, 0xFF00, 0xFF); // R G B
-			pd.redShift = -16;
-			pd.greenShift = -8;
-			pd.blueShift = 0;
-			return new ImageData(m_width, m_height, bypp*8, pd, 1, data);
+			return new ImageData(m_width, m_height, bypp*8, new PaletteData(0xFF0000, 0xFF00, 0xFF), 1, data); // LSB is R
 		
 		} finally {
 			in.close();			

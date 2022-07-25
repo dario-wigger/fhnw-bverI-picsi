@@ -74,19 +74,11 @@ public class ImageProcessing {
 			for(int i = 0; i < grayscale.length; i++) grayscale[i] = new RGB(i, i, i);
 			return new ImageData(width, height, 8, new PaletteData(grayscale));
 		case Picsi.IMAGE_TYPE_RGB:
-			PaletteData pd = new PaletteData(0xFF0000, 0xFF00, 0xFF); // R G B
-			pd.redShift = -16;
-			pd.greenShift = -8;
-			pd.blueShift = 0;
-			return new ImageData(width, height, 24, pd);
+			return new ImageData(width, height, 24, new PaletteData(0xFF, 0xFF00, 0xFF0000)); // LSB is B
 		case Picsi.IMAGE_TYPE_GRAY32:
 			return new ImageData(width, height, 32, new PaletteData(-1, -1, -1)); // is not visualized correctly on Windows
 		case Picsi.IMAGE_TYPE_RGBA:
-			pd = new PaletteData(0xFF0000, 0xFF00, 0xFF); // R G B
-			pd.redShift = -16;
-			pd.greenShift = -8;
-			pd.blueShift = 0;
-			ImageData imageData = new ImageData(width, height, 24, pd);
+			ImageData imageData = new ImageData(width, height, 24, new PaletteData(0xFF, 0xFF00, 0xFF0000)); // LSB is R
 			imageData.setAlpha(0, 0, 255); // creates all alpha values
 			return imageData;
 		}
