@@ -28,6 +28,7 @@ public class Matrix {
 	
 	public int nRows() { return m_data.length; }
 	public int nCols() { return m_data[0].length; }
+	public double[][] data() { return m_data; }
 	public double el(int i, int j) { return m_data[i][j]; }
 	
 	/**
@@ -209,5 +210,21 @@ public class Matrix {
 	 */
 	public static Matrix scaling(double sx, double sy) {
 		return new Matrix(new double[][] {{ sx, 0, 0 }, { 0, sy, 0 }, { 0, 0 , 1 }});
+	}
+	
+	/**
+	 * Dot product of vectors a and b
+	 * @param a
+	 * @param b
+	 * @return dot product
+	 */
+	public static double dot(double[] a, double[] b) {
+		assert(a.length == b.length);
+		
+		double sum = 0;
+		for(int i = 0; i < a.length; i++) {
+			sum += a[i]*b[i];
+		}
+		return sum;
 	}
 }
