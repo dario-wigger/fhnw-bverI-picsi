@@ -122,7 +122,7 @@ public class ColorTableDlg extends Dialog {
 		m_imageData = views.getImage(!m_outputBtn.getSelection());
     	
     	if (!m_imageData.palette.isDirect) {
-    		Display device = m_shell.getDisplay();
+    		Display display = m_shell.getDisplay();
     		RGB colors[] = m_imageData.palette.getRGBs();
     		int nColors = Math.min(MaxColors, colors.length);
     		Control labels[] = m_labelsComp.getChildren();
@@ -130,7 +130,7 @@ public class ColorTableDlg extends Dialog {
     		// set color of used labels
     		for(int i=0; i < nColors; i++) {
     			Label label = (Label)labels[i];
-    			Color c = new Color(device, colors[i]);
+    			Color c = new Color(display, colors[i]);
     			label.setBackground(c);
     			c.dispose();
     		}
