@@ -5,6 +5,7 @@ import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 
 import imageprocessing.IImageProcessor;
+import main.Picsi;
 import utils.Parallel;
 
 /**
@@ -33,21 +34,9 @@ public class Inverter implements IImageProcessor {
 	 * @param imageType
 	 */
 	public static void invert(ImageData imageData, int imageType) {
-		if (imageData.palette.isDirect) {
-			// no palette: change pixel colors
-			Parallel.For(0, imageData.height, v -> {
-				for (int u=0; u < imageData.width; u++) {
-					int pixel = imageData.getPixel(u,v);
-					imageData.setPixel(u, v, ~pixel); // don't use ~pixel in case of an indirect palette, because the resulting value might be larger than the palette size
-					/*RGB rgb = imageData.palette.getRGB(imageData.getPixel(u,v));
-					rgb.red   = 255 - rgb.red;
-					rgb.green = 255 - rgb.green;
-					rgb.blue  = 255 - rgb.blue;
-					imageData.setPixel(u, v, imageData.palette.getPixel(rgb));*/
-				}
-			});
-		} else {
-			// indexed color, binary or grayscale image: change palette
+		if (imageType == Picsi.IMAGE_TYPE_INDEXED) {
+			// indexed color: change palette
+			// don't change palette for binary and grayscale, because getPixel will return the index not the color
 			RGB[] paletteIn = imageData.getRGBs();
 			RGB[] paletteOut = new RGB[paletteIn.length];
 			
@@ -56,6 +45,13 @@ public class Inverter implements IImageProcessor {
 				paletteOut[i] = new RGB(255 - rgbIn.red, 255 - rgbIn.green, 255 - rgbIn.blue);
 			}
 			imageData.palette = new PaletteData(paletteOut);
+		} else {
+			Parallel.For(0, imageData.height, v -> {
+				for (int u=0; u < imageData.width; u++) {
+					final int pixel = imageData.getPixel(u,v);
+					imageData.setPixel(u, v, ~pixel); 
+				}
+			});
 		}
 	}
 }
