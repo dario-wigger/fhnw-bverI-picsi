@@ -38,6 +38,7 @@ import main.Picsi;
  */
 public class HistogramDlg extends Dialog {
 	final static int ColorHeight = 20;
+	final static int RGBHist = 3;
 
 	private Shell m_shell;
 	private Label m_statLbl;
@@ -46,7 +47,7 @@ public class HistogramDlg extends Dialog {
 	private Canvas m_canvas;
 	private Composite m_channelsComp;
 	private IntSummaryStatistics m_stat;
-	private int[] m_hist;
+	private int[][] m_hist;
 	private int m_imageType;
 	private int m_selectedChannel;
 	private int m_xMin, m_dx;
@@ -61,12 +62,7 @@ public class HistogramDlg extends Dialog {
 
     public Object open(TwinView views) {
         Shell parent = getParent();
-        Color[] rgb = new Color[] {
-        	Display.getCurrent().getSystemColor(SWT.COLOR_RED),		
-        	Display.getCurrent().getSystemColor(SWT.COLOR_GREEN),		
-        	Display.getCurrent().getSystemColor(SWT.COLOR_BLUE)		
-        };
-        
+
         // create shell
         m_shell = new Shell(parent, SWT.RESIZE | SWT.DIALOG_TRIM | SWT.MODELESS);
         m_shell.setAlpha(220);
@@ -176,6 +172,15 @@ public class HistogramDlg extends Dialog {
 				if (((Button)event.widget).getSelection()) update(views.hasSecondView(), views);
 			}
 		});
+		Button rgbBtn = new Button(m_channelsComp, SWT.RADIO);
+		rgbBtn.setText("RGB");
+		rgbBtn.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				// radio buttons are also unselected
+				if (((Button)event.widget).getSelection()) update(views.hasSecondView(), views);
+			}
+		});
 		
 		// update data
         update(views.hasSecondView(), views);
@@ -184,21 +189,27 @@ public class HistogramDlg extends Dialog {
         m_canvas.addPaintListener(new PaintListener() {
 			@Override
 			public void paintControl(PaintEvent event) {
-				onPaint(event, rgb);
+				onPaint(event);
 			}
 		});
         
         m_canvas.addMouseMoveListener(new MouseMoveListener() {
 			@Override
 			public void mouseMove(MouseEvent e) {
-				if (e.x >= m_xMin && e.x < m_xMin + m_hist.length*m_dx) {
-					final int pos = (e.x - m_xMin)/m_dx;
+				if (e.x >= m_xMin && e.x < m_xMin + m_hist[0].length*m_dx) {
+					final int x = (e.x - m_xMin)/m_dx;
 					
-			    	// update statistic label
-					m_statLbl.setText(Picsi.createMsg("Min = {0}   Max = {1}   @{2} = {3}", 
-						new Object[] { m_stat.getMin(), m_stat.getMax(), pos, m_hist[pos] }
-					));
-
+					if (m_hist.length == 1) {
+				    	// update statistic label
+						m_statLbl.setText(Picsi.createMsg("Min = {0}   Max = {1}   @{2} = {3}", 
+							new Object[] { m_stat.getMin(), m_stat.getMax(), x, m_hist[0][x] }
+						));
+					} else {
+				    	// update statistic label
+						m_statLbl.setText(Picsi.createMsg("Min = {0}   Max = {1}   @{2} = ({3},{4},{5})", 
+							new Object[] { m_stat.getMin(), m_stat.getMax(), x, m_hist[0][x], m_hist[1][x], m_hist[2][x] }
+						));
+					}					
 					m_shell.layout();	// necessary to update m_statLbl
 				}
 			}
@@ -210,7 +221,6 @@ public class HistogramDlg extends Dialog {
         while (!m_shell.isDisposed()) {
         	if (!display.readAndDispatch()) display.sleep();
         }
-        for(Color c: rgb) c.dispose();
         views.closeHistogram();
         return null;
     }
@@ -246,11 +256,20 @@ public class HistogramDlg extends Dialog {
 		
     	// update histogram and statistic
     	if (m_imageType == Picsi.IMAGE_TYPE_RGB) {
-    		m_hist = ImageProcessing.histogramRGB(m_imageData, m_selectedChannel);    		
+    		if (m_selectedChannel == RGBHist) {
+    			m_hist = new int[3][];
+    			m_hist[0] = ImageProcessing.histogramRGB(m_imageData, 0);
+    			m_hist[1] = ImageProcessing.histogramRGB(m_imageData, 1);
+    			m_hist[2] = ImageProcessing.histogramRGB(m_imageData, 2);
+    		} else {
+    			m_hist = new int[1][];
+    			m_hist[0] = ImageProcessing.histogramRGB(m_imageData, m_selectedChannel);
+    		}
     	} else {
-    		m_hist = ImageProcessing.histogram(m_imageData, 1 << Math.min(8, m_imageData.depth));
+			m_hist = new int[1][];
+    		m_hist[0] = ImageProcessing.histogram(m_imageData, 1 << Math.min(8, m_imageData.depth));
     	}
-    	m_stat = Arrays.stream(m_hist).summaryStatistics();
+    	m_stat = Arrays.stream(m_hist[0]).summaryStatistics();
     	
     	// update statistic label
 		m_statLbl.setText(Picsi.createMsg("Min = {0}   Max = {1}", 
@@ -268,38 +287,40 @@ public class HistogramDlg extends Dialog {
     	return new Color(m_shell.getDisplay(), p, p, p);
     }
     
-    private void onPaint(PaintEvent event, Color[] rgb) {
+    private void onPaint(PaintEvent event) {
 		// draw histogram
-		Rectangle rect = m_canvas.getClientArea();
-		GC gc = new GC(m_canvas);
-		int x, pixel;
+		final Rectangle rect = m_canvas.getClientArea();
+		final GC gc = new GC(m_canvas);
 		final int h = rect.height - ColorHeight;
 		final int max = Math.max(1, (m_logBtn.getSelection()) ? (int)Math.round(Math.log(m_stat.getMax())) : m_stat.getMax());
 		final RGB[] colors = m_imageData.palette.colors;
+		int x, pixel;
+		Color histColor;
 		
 		switch(m_imageType) {
 		case Picsi.IMAGE_TYPE_BINARY:
 			m_dx = rect.width/2;
 			m_xMin = (rect.width - 2*m_dx)/2;
+			histColor = Display.getCurrent().getSystemColor(SWT.COLOR_BLACK);
 			{
-				// draw first bar
-				final int v = (m_logBtn.getSelection()) ? (int)Math.round(Math.log(m_hist[0])) : m_hist[0];
+				// draw histogram
+				final int v = (m_logBtn.getSelection()) ? (int)Math.round(Math.log(m_hist[0][0])) : m_hist[0][0];
 				final int height = h*v/max;
-				gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
+				gc.setBackground(histColor);
 				gc.fillRectangle(m_xMin + m_dx/2, h - height, 2, height);
-				// draw color
+				// draw first bar
 				Color c = rgb2color(colors[0]);
 				gc.setBackground(c);
 				gc.fillRectangle(m_xMin, h, m_dx, ColorHeight);
 				c.dispose();
 			}
 			{
-				// draw second bar
-				final int v = (m_logBtn.getSelection()) ? (int)Math.round(Math.log(m_hist[1])) : m_hist[1];
+				// draw histogram
+				final int v = (m_logBtn.getSelection()) ? (int)Math.round(Math.log(m_hist[0][1])) : m_hist[0][1];
 				final int height = h*v/max;
-				gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
+				gc.setBackground(histColor);
 				gc.fillRectangle(m_xMin + m_dx + m_dx/2, h - height, 2, height);
-				// draw color
+				// draw second bar
 				Color c = rgb2color(colors[1]);
 				gc.setBackground(c);
 				gc.fillRectangle(m_xMin + m_dx, h, m_dx, ColorHeight);
@@ -308,18 +329,19 @@ public class HistogramDlg extends Dialog {
 			break;
 		case Picsi.IMAGE_TYPE_GRAY:
 		case Picsi.IMAGE_TYPE_INDEXED:
-			m_dx = rect.width/m_hist.length;
-			m_xMin = (rect.width - m_hist.length*m_dx)/2;
+			m_dx = rect.width/m_hist[0].length;
+			m_xMin = (rect.width - m_hist[0].length*m_dx)/2;
 			x = m_xMin;
 			pixel = 0;
+			histColor = Display.getCurrent().getSystemColor(SWT.COLOR_BLACK);
 			
-			for(int v: m_hist) {
-				// draw bar
+			for(int v: m_hist[0]) {
+				// draw histogram
 				if (m_logBtn.getSelection()) v = (int)Math.round(Math.log(v));
 				final int height = h*v/max;
-				gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
+				gc.setBackground(histColor);
 				gc.fillRectangle(x, h - height, m_dx, height);
-				// draw color
+				// draw bar
 				Color c = (colors != null) ? rgb2color(colors[pixel]) : gray2color(pixel);
 				gc.setBackground(c);
 				gc.fillRectangle(x, h, m_dx, ColorHeight);
@@ -329,24 +351,98 @@ public class HistogramDlg extends Dialog {
 			}
 			break;
 		case Picsi.IMAGE_TYPE_RGB:
-			m_dx = rect.width/m_hist.length;
-			m_xMin = (rect.width - m_hist.length*m_dx)/2;
+			m_dx = rect.width/m_hist[0].length;
+			m_xMin = (rect.width - m_hist[0].length*m_dx)/2;
 			x = m_xMin;
 			pixel = 0;
-			
-			for(int v: m_hist) {
-				// draw bar
-				if (m_logBtn.getSelection()) v = (int)Math.round(Math.log(v));
-				final int height = h*v/max;
-				gc.setBackground(rgb[m_selectedChannel]);
-				gc.fillRectangle(x, h - height, m_dx, height);
-				// draw color
-				Color c = new Color(m_shell.getDisplay(), (m_selectedChannel == 0) ? pixel : 0, (m_selectedChannel == 1) ? pixel : 0, (m_selectedChannel == 2) ? pixel : 0);
-				gc.setBackground(c);
-				gc.fillRectangle(x, h, m_dx, ColorHeight);
-				c.dispose();
-				x += m_dx;
-				pixel++;
+			if (m_selectedChannel < RGBHist) {
+				// R or G or B
+				switch(m_selectedChannel) {
+				case 0: histColor = Display.getCurrent().getSystemColor(SWT.COLOR_RED); break;
+				case 1: histColor = Display.getCurrent().getSystemColor(SWT.COLOR_GREEN); break;
+				case 2: histColor = Display.getCurrent().getSystemColor(SWT.COLOR_BLUE); break;
+				default: histColor = Display.getCurrent().getSystemColor(SWT.COLOR_BLACK); break;
+				}
+				
+				for(int v: m_hist[0]) {
+					// draw histogram
+					if (m_logBtn.getSelection()) v = (int)Math.round(Math.log(v));
+					final int height = h*v/max;
+					gc.setBackground(histColor);
+					gc.fillRectangle(x, h - height, m_dx, height);
+					// draw bar
+					Color c = new Color(m_shell.getDisplay(), (m_selectedChannel == 0) ? pixel : 0, (m_selectedChannel == 1) ? pixel : 0, (m_selectedChannel == 2) ? pixel : 0);
+					gc.setBackground(c);
+					gc.fillRectangle(x, h, m_dx, ColorHeight);
+					c.dispose();
+					x += m_dx;
+					pixel++;
+				}
+			} else {
+				// RGB
+				for(int i = 0; i < m_hist[0].length; i++) {
+					// draw histogram
+					int vR = m_hist[0][i];
+					int vG = m_hist[1][i];
+					int vB = m_hist[2][i];
+					
+					if (m_logBtn.getSelection()) vR = (int)Math.round(Math.log(vR));
+					if (m_logBtn.getSelection()) vG = (int)Math.round(Math.log(vG));
+					if (m_logBtn.getSelection()) vB = (int)Math.round(Math.log(vB));
+
+					final int heightR = h*vR/max;
+					final int heightG = h*vG/max;
+					final int heightB = h*vB/max;
+					int heightW;
+					
+					if (vR >= vG && vR >= vB) {
+						gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
+						gc.fillRectangle(x, h - heightR, m_dx, heightR);
+						if (vG >= vB) {
+							gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW));
+							gc.fillRectangle(x, h - heightG, m_dx, heightG);
+							heightW = heightB;
+						} else {
+							gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_MAGENTA));
+							gc.fillRectangle(x, h - heightB, m_dx, heightB);
+							heightW = heightG;
+						}
+					} else if (vG >= vR && vG >= vB) {
+						gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_GREEN));
+						gc.fillRectangle(x, h - heightG, m_dx, heightG);
+						if (vR >= vB) {
+							gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW));
+							gc.fillRectangle(x, h - heightR, m_dx, heightR);
+							heightW = heightB;
+						} else {
+							gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_CYAN));
+							gc.fillRectangle(x, h - heightB, m_dx, heightB);
+							heightW = heightR;
+						}
+					} else {
+						gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_BLUE));
+						gc.fillRectangle(x, h - heightB, m_dx, heightB);
+						if (vR >= vG) {
+							gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_MAGENTA));
+							gc.fillRectangle(x, h - heightR, m_dx, heightR);
+							heightW = heightG;
+						} else {
+							gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_CYAN));
+							gc.fillRectangle(x, h - heightG, m_dx, heightG);
+							heightW = heightR;
+						}
+					}
+					gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
+					gc.fillRectangle(x, h - heightW, m_dx, heightW);
+					
+					// draw bar
+					Color c = gray2color(pixel);
+					gc.setBackground(c);
+					gc.fillRectangle(x, h, m_dx, ColorHeight);
+					c.dispose();
+					x += m_dx;
+					pixel++;
+				}
 			}
 			break;
 		}
