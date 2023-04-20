@@ -22,6 +22,7 @@ public class ImageMenu extends UserMenu {
 	public ImageMenu(MenuItem item, TwinView views, MRU mru) {
 		super(item, views, mru);
 
+		// add(menuText, shortcut, instanceOfIImageProcessor)
 		add("C&ropping\tCtrl+R", 								SWT.CTRL | 'R', new Cropping());
 		add("&Invert\tF1", 										SWT.F1, 		new Inverter());
 
