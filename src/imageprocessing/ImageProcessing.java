@@ -103,6 +103,20 @@ public class ImageProcessing {
 	
 		
 	/**
+	 * Helper function to create an empty image with same size and image type and channel order as inData
+	 * @param inData
+	 * @return created ImageData
+	 */
+	public static ImageData createImage(ImageData inData) {
+		ImageData imageData = new ImageData(inData.width, inData.height, inData.depth, inData.palette);
+		
+		if (inData.getTransparencyType() == SWT.TRANSPARENCY_ALPHA) {
+			imageData.setAlpha(0, 0, 255); // creates all alpha values
+		}
+		return imageData;
+	}
+
+	/**
 	 * Compute PSNR of two images of the same image type
 	 * @param inData1
 	 * @param inData2
