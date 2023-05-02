@@ -290,7 +290,7 @@ public class HistogramDlg extends Dialog {
     private void onPaint(PaintEvent event) {
 		// draw histogram
 		final Rectangle rect = m_canvas.getClientArea();
-		final GC gc = new GC(m_canvas);
+		final GC gc = event.gc;
 		final int h = rect.height - ColorHeight;
 		final int max = Math.max(1, (m_logBtn.getSelection()) ? (int)Math.round(Math.log(m_stat.getMax())) : m_stat.getMax());
 		final RGB[] colors = m_imageData.palette.colors;
