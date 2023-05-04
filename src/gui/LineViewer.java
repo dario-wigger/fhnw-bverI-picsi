@@ -233,7 +233,7 @@ public class LineViewer extends Dialog {
 			public void paintControl(PaintEvent event) {
 				final int margin = 2;
 				Rectangle rect = m_canvas.getClientArea();
-				GC gc = new GC(m_canvas);
+				GC gc = event.gc;
 				int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
 				
 				for(int i=0; i < m_line.length; i++) {
