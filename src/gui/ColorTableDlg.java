@@ -121,7 +121,14 @@ public class ColorTableDlg extends Dialog {
 		m_outputBtn.setEnabled(hasOutput);
 		m_imageData = views.getImage(!m_outputBtn.getSelection());
     	
-    	if (!m_imageData.palette.isDirect) {
+    	if (m_imageData.palette.isDirect) {
+    		Control labels[] = m_labelsComp.getChildren();
+    		
+    		for(int i = 0; i < labels.length; i++) {
+    			Label label = (Label)labels[i];
+    			label.setBackground(m_shell.getBackground());
+    		}
+    	} else {
     		Display display = m_shell.getDisplay();
     		RGB colors[] = m_imageData.palette.getRGBs();
     		int nColors = Math.min(MaxColors, colors.length);
