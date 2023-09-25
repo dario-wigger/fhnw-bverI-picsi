@@ -392,11 +392,10 @@ public class PNM implements IImageFile {
 	private ImageData readBinPBM(RandomAccessFile in) throws IOException {
 		try {
 			// read data
-			int strideIn = ((m_width + 31)/32)*4;
-			int stride = (m_width + 7)/8;
+			final int stride = (m_width + 7)/8;
 			byte[] data = new byte[stride*m_height];
 			int pos = 0;
-			byte[] line = new byte[strideIn];
+			byte[] line = new byte[stride];
 	
 			for (int y = 0; y < m_height; y++) {
 				in.read(line);
@@ -417,10 +416,9 @@ public class PNM implements IImageFile {
 	private void writeBinPBM(RandomAccessFile out, ImageData imageData) throws IOException {
 		try {
 			// write data
-			int strideOut = ((m_width + 31)/32)*4;
-			int stride = (m_width + 7)/8;
+			final int stride = (m_width + 7)/8;
 			int pos = 0;
-			byte[] line = new byte[strideOut];
+			byte[] line = new byte[stride];
 	
 			for (int y = 0; y < m_height; y++) {
 				for (int x = 0; x < stride; x++) {
@@ -555,14 +553,12 @@ public class PNM implements IImageFile {
 			// read data
 			int pos = 0;
 			final int nBytes = bypp*m_width;
-			final int stride = ((nBytes + 3)/4)*4;
-			byte[] line = new byte[stride];
+			byte[] line = new byte[nBytes];
 	
 			for (int y = 0; y < m_height; y++) {
-				int p = 0;
 				in.read(line);
 				for (int x = 0; x < nBytes; x++) {
-					data[pos++] = (byte)(line[p++]*255/m_maxValue);
+					data[pos++] = (byte)(line[x]*255/m_maxValue);
 				}
 			}			
 			
@@ -580,8 +576,7 @@ public class PNM implements IImageFile {
 			
 			// write data
 			final int nBytes = bypp*m_width;
-			final int stride = ((nBytes + 3)/4)*4;
-			byte[] line = new byte[stride];
+			byte[] line = new byte[nBytes];
 	
 			for (int y = 0; y < m_height; y++) {
 				int pos = 0;
