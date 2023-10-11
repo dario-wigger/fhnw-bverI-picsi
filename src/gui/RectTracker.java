@@ -1,13 +1,16 @@
 package gui;
 
-import main.Picsi;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Tracker;
+import org.eclipse.swt.widgets.Display;
+
+import main.Picsi;
 
 /**
  * Rectangle tracker for input view
@@ -16,59 +19,103 @@ import org.eclipse.swt.widgets.Tracker;
  *
  */
 public class RectTracker {
-	private Tracker m_t1, m_t2;
+	View m_view = Picsi.getTwinView().getView(true);
+	MouseMoveListener m_mouseMoveListener;
+	MouseListener m_mouseListener;
+	PaintListener m_paintListener;
+	Rectangle m_rect;
+	int m_idx;
 	
 	public RectTracker() {
-		TwinView twins = Picsi.getTwinView();
-		assert twins != null : "twin view is null";
-
-		View view = twins.getView(true); // input view
-		m_t1 = new Tracker(view, SWT.LEFT | SWT.RIGHT | SWT.UP | SWT.DOWN);
-		m_t2 = new Tracker(view, SWT.RIGHT | SWT.DOWN | SWT.RESIZE);
+		m_view.setFocus();
+		Picsi.getTwinView().m_mainWnd.setEnabledMenu(false);
 	}
 	
-	public Rectangle track(int x, int y, int pw, int ph) {
-		TwinView twins = Picsi.getTwinView();
-		assert twins != null : "twin view is null";
+	/**
+	 * Starts a rectangle tracker for entering a x-y-oriented rectangle
+	 * @param w rectangle width
+	 * @param h rectangle height
+	 * @return rectangle or null
+	 */
+	public Rectangle start(int w, int h) {
+		Display display = m_view.getDisplay();
+		Color black = display.getSystemColor(SWT.COLOR_BLACK);
+		Color white = display.getSystemColor(SWT.COLOR_WHITE);
+		m_rect = new Rectangle(0, 0, w, h);
+		m_idx = 0;
 		
-		View view = twins.getView(true); // input view
-		final int w = view.getImageWidth();
-		final int h = view.getImageHeight();
-		
-		m_t1.setRectangles(new Rectangle[] { new Rectangle(view.image2Client(x), view.image2Client(y), view.image2Client(pw), view.image2Client(ph)) });
-		m_t1.addControlListener(new ControlAdapter() {
+		m_mouseListener = new MouseListener() {
 			@Override
-			public void controlMoved(ControlEvent event) {
-				Rectangle r = m_t1.getRectangles()[0];
-				Point pnt = new Point(
-						Math.max(0, Math.min(w - 1, view.client2ImageX(r.x))), 
-						Math.max(0, Math.min(h - 1, view.client2ImageY(r.y))));
-				twins.m_mainWnd.showImagePosition(pnt);
-			}
-		});
-		m_t1.open();
-		
-		m_t2.setRectangles(m_t1.getRectangles());
-		m_t2.addControlListener(new ControlAdapter() {
+			public void mouseDoubleClick(MouseEvent event) {}
 			@Override
-			public void controlResized(ControlEvent event) {
-				Rectangle r = m_t2.getRectangles()[0];
-				int x = Math.max(0, Math.min(w - 1, view.client2ImageX(r.x))); 
-				int y = Math.max(0, Math.min(h - 1, view.client2ImageY(r.y))); 
-				Point pnt = new Point(
-						Math.max(1, Math.min(w - x, view.client2Image(r.width))), 
-						Math.max(1, Math.min(h - y, view.client2Image(r.height))));
-				twins.m_mainWnd.showImagePosition(pnt);
+			public void mouseDown(MouseEvent event) {}  
+			@Override
+			public void mouseUp(MouseEvent event) {
+				if (m_idx == 0) {
+					m_rect.x = event.x;
+					m_rect.y = event.y;
+					m_idx++;
+				} else if (m_idx == 1) {
+					m_rect.width = event.x - m_rect.x;
+					m_rect.height = event.y - m_rect.y;
+					m_idx++;
+				}
 			}
-		});
-		m_t2.open();
+		};
+		m_view.addMouseListener(m_mouseListener);
 		
-		Rectangle r = m_t2.getRectangles()[0];
-		r.x = Math.max(0, Math.min(w - 1, view.client2ImageX(r.x))); 
-		r.y = Math.max(0, Math.min(h - 1, view.client2ImageY(r.y))); 
-		r.width = Math.max(1, Math.min(w - r.x, view.client2Image(r.width))); 
-		r.height = Math.max(1, Math.min(h - r.y, view.client2Image(r.height)));
+		m_mouseMoveListener = new MouseMoveListener() {
+			@Override
+			public void mouseMove(MouseEvent event) {
+				if (m_idx == 0) {
+					m_rect.x = event.x;
+					m_rect.y = event.y;
+				} else if (m_idx == 1) {
+					m_rect.width = event.x - m_rect.x;
+					m_rect.height = event.y - m_rect.y;
+				}
+				
+				m_view.redraw();
+			}
+		};
+		m_view.addMouseMoveListener(m_mouseMoveListener);
+
+		m_paintListener = new PaintListener() {
+			@Override
+			public void paintControl(PaintEvent event) {
+				event.gc.setLineStyle(SWT.LINE_SOLID);
+				event.gc.setForeground(white);
+				event.gc.drawRectangle(m_rect);
+				event.gc.setLineStyle(SWT.LINE_DOT);
+				event.gc.setForeground(black);
+				event.gc.drawRectangle(m_rect);
+			}
+		};
+		m_view.addPaintListener(m_paintListener);
 		
-		return r;
+		try {
+			while (m_idx < 2 && !m_view.isDisposed()) 
+				if (!display.readAndDispatch()) display.sleep();
+
+			// transform coordinates
+			m_rect.x = m_view.client2ImageX(m_rect.x);
+			m_rect.y = m_view.client2ImageX(m_rect.y);
+			m_rect.width = m_view.client2ImageX(m_rect.width);
+			m_rect.height = m_view.client2ImageX(m_rect.height);
+			return (m_view.isDisposed()) ? null : m_rect;
+			
+		} finally {
+			stop();
+		}
 	}
+	
+	private void stop() {
+		if (!m_view.isDisposed()) {
+			m_view.removeMouseListener(m_mouseListener);
+			m_view.removeMouseMoveListener(m_mouseMoveListener);
+			m_view.removePaintListener(m_paintListener);
+			Picsi.getTwinView().m_mainWnd.setEnabledMenu(true);
+		}
+	}
+
 }

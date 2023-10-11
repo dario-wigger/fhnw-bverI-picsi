@@ -25,7 +25,7 @@ public class Cropping implements IImageProcessor {
 		
 		// let the user choose the ROI using a tracker
 		RectTracker rt = new RectTracker();
-		Rectangle r = rt.track((int)(w*zoom/4), (int)(h*zoom/4), (int)(w*zoom/2), (int)(h*zoom/2));
+		Rectangle r = rt.start((int)(w*zoom/4), (int)(h*zoom/4));
 		
 		return ImageProcessing.crop(inData, r.x, r.y, r.width, r.height);
 	}
