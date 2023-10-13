@@ -26,6 +26,8 @@ import imageprocessing.colors.ColorSpaces;
  *
  */
 public class MainWindow {
+	private static final int SizePaneWidth = 250;
+	
 	public TwinView m_views;
 	
 	private final MRU m_mru = new MRU(this);
@@ -162,7 +164,7 @@ public class MainWindow {
 			// Label to show image size and zoom value
 			m_zoomLabel = new Label(compo, SWT.RIGHT);
 			data = new GridData(SWT.RIGHT, SWT.FILL, false, true);
-			data.widthHint = 200;
+			data.widthHint = SizePaneWidth;
 			m_zoomLabel.setLayoutData(data);
 		}
 		
