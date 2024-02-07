@@ -46,10 +46,13 @@ public class Inverter implements IImageProcessor {
 			}
 			imageData.palette = new PaletteData(paletteOut);
 		} else {
+			// works for images with/without palette
+			final int mask = imageData.palette.isDirect ? (1 << imageData.depth) - 1 : imageData.palette.colors.length - 1;
+			
 			Parallel.For(0, imageData.height, v -> {
 				for (int u=0; u < imageData.width; u++) {
 					final int pixel = imageData.getPixel(u,v);
-					imageData.setPixel(u, v, ~pixel); 
+					imageData.setPixel(u, v, mask & ~pixel); 
 				}
 			});
 		}
