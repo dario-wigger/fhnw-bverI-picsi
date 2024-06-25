@@ -1065,7 +1065,7 @@ public class MainWindow {
 	
 	// Window menu
 	private void createWindowMenu(Menu menuBar) {
-		enum ME { AutoZoom, Original, Synch, Sep1, Output, Sep2, Mean };
+		enum ME { AutoZoom, Original, Synch, Sep1, Output, Sep2, Mean, HSV };
 		
 		MenuItem item = new MenuItem(menuBar, SWT.CASCADE);
 		item.setText("&Window");
@@ -1082,6 +1082,7 @@ public class MainWindow {
 				menuItems[ME.Output.ordinal()].setEnabled(!m_views.isEmpty());
 				menuItems[ME.Output.ordinal()].setSelection(m_views.hasSecondView());
 				menuItems[ME.Mean.ordinal()].setSelection(m_views.useMeanColor());
+				menuItems[ME.HSV.ordinal()].setSelection(m_views.useHSVColor());
 			}
 		});
 
@@ -1145,6 +1146,18 @@ public class MainWindow {
 				m_views.toggleMeanAreaColor();
 			}
 		});
+
+		// Window -> HSV Color
+		item = new MenuItem(windowMenu, SWT.CHECK);
+		item.setText("&HSV Color\tCtrl+H");
+		item.setAccelerator(SWT.MOD1 + 'H');
+		item.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				m_views.toggleHSVColor();
+			}
+		});
+
 	}
 	
 	// Help menu

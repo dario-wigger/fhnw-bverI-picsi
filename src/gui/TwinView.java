@@ -32,6 +32,7 @@ public class TwinView extends Composite {
 	private boolean m_autoZoom = true;
 	private boolean m_synchronized = false;
 	private boolean m_meanColor = false;
+	private boolean m_hsvColor = false;
 	
 	public TwinView(MainWindow mainWnd, Composite parent, int style) {
 		super(parent, style);
@@ -139,6 +140,10 @@ public class TwinView extends Composite {
 	
 	public boolean useMeanColor() {
 		return m_meanColor;
+	}
+	
+	public boolean useHSVColor() {
+		return m_hsvColor;
 	}
 	
 	public boolean hasAutoZoom() {
@@ -374,6 +379,10 @@ public class TwinView extends Composite {
     	Shell shell = getShell();
     	
 		shell.setCursor(m_meanColor ? m_areaCursor : m_standardCursor);   	
+	}
+	
+	public void toggleHSVColor() {
+		m_hsvColor = !m_hsvColor;
 	}
 	
 	public void toggleColorTable() {

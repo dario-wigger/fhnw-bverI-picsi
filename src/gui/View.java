@@ -406,28 +406,54 @@ public class View extends Canvas {
 				hasAlpha = true;
 				alphaValue = m_imageData.getAlpha(x, y);
 			}
-			String rgbMessageFormat = (hasAlpha) ? "RGBA '{'{0},{1},{2},{3}'}'" : "RGB '{'{0},{1},{2}'}'";
-			String rgbNormalizedFormat = (hasAlpha) ? "{0},{1},{2},{3}" : "{0},{1},{2}";
-			Object[] rgbArgs = {
-					Integer.toString(rgb.red),
-					Integer.toString(rgb.green),
-					Integer.toString(rgb.blue),
-					Integer.toString(alphaValue)
-			};
-			Object[] rgbNormalizedArgs = {
-					String.format("%.2f", rgb.red/255.0),
-					String.format("%.2f", rgb.green/255.0),
-					String.format("%.2f", rgb.blue/255.0),
-					String.format("%.2f", alphaValue/255.0)
-			};
+			
 			// return data in order defined in PixelInfo enumeration
-			Object[] args = {
-					x, y, 0, pixel, rgb, 
-					Integer.toHexString(pixel),
-					Picsi.createMsg(rgbMessageFormat, rgbArgs),
-					Picsi.createMsg(rgbNormalizedFormat, rgbNormalizedArgs),
-					(pixel == m_imageData.transparentPixel) ? "(transparent)" : ""};
-			return args;
+			if (m_twins.useHSVColor()) {
+				final float[] hsv = rgb.getHSB();
+				final String hsvMessageFormat = (hasAlpha) ? "HSVA '{'{0},{1},{2},{3}'}'" : "HSV '{'{0},{1},{2}'}'";
+				final String hsvNormalizedFormat = (hasAlpha) ? "{0},{1},{2},{3}" : "{0},{1},{2}";
+				final Object[] hsvArgs = {
+						Integer.toString(Math.round(hsv[0])),
+						Integer.toString(Math.round(hsv[1]*255)),
+						Integer.toString(Math.round(hsv[2]*255)),
+						Integer.toString(alphaValue)
+				};
+				final Object[] hsvNormalizedArgs = {
+						String.format("%.2f", hsv[0]),
+						String.format("%.2f", hsv[1]),
+						String.format("%.2f", hsv[2]),
+						String.format("%.2f", alphaValue/255.0)
+				};
+				final Object[] args = {
+						x, y, 0, pixel, rgb, 
+						Integer.toHexString(pixel),
+						Picsi.createMsg(hsvMessageFormat, hsvArgs),
+						Picsi.createMsg(hsvNormalizedFormat, hsvNormalizedArgs),
+						(pixel == m_imageData.transparentPixel) ? "(transparent)" : ""};
+				return args;
+			} else {
+				final String rgbMessageFormat = (hasAlpha) ? "RGBA '{'{0},{1},{2},{3}'}'" : "RGB '{'{0},{1},{2}'}'";
+				final String rgbNormalizedFormat = (hasAlpha) ? "{0},{1},{2},{3}" : "{0},{1},{2}";
+				final Object[] rgbArgs = {
+						Integer.toString(rgb.red),
+						Integer.toString(rgb.green),
+						Integer.toString(rgb.blue),
+						Integer.toString(alphaValue)
+				};
+				final Object[] rgbNormalizedArgs = {
+						String.format("%.2f", rgb.red/255.0),
+						String.format("%.2f", rgb.green/255.0),
+						String.format("%.2f", rgb.blue/255.0),
+						String.format("%.2f", alphaValue/255.0)
+				};
+				final Object[] args = {
+						x, y, 0, pixel, rgb, 
+						Integer.toHexString(pixel),
+						Picsi.createMsg(rgbMessageFormat, rgbArgs),
+						Picsi.createMsg(rgbNormalizedFormat, rgbNormalizedArgs),
+						(pixel == m_imageData.transparentPixel) ? "(transparent)" : ""};
+				return args;
+			}
 		} else {
 			return null;
 		}
