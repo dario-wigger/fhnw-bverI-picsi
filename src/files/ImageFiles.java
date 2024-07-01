@@ -103,7 +103,7 @@ public class ImageFiles {
 	 * @param filename
 	 * @return file type
 	 */
-	public static int determinefileType(String filename) {
+	public static int determineFileType(String filename) {
 		String name = filename.toLowerCase();
 	
 		// check system file types

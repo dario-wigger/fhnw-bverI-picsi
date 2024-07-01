@@ -302,7 +302,7 @@ public class MainWindow {
 
 		// Figure out what file type the user wants.
 		//fileChooser.getFilterIndex();
-		int fileType = ImageFiles.determinefileType(fileName);
+		int fileType = ImageFiles.determineFileType(fileName);
 		if (fileType == SWT.IMAGE_UNDEFINED) {
 			MessageBox box = new MessageBox(m_shell, SWT.ICON_ERROR);
 			box.setMessage(Picsi.createMsg("Unknown file extension: {0}\nPlease use bmp, gif, ico, jfif, jpeg, jpg, png, tif, or tiff.", 
@@ -369,7 +369,7 @@ public class MainWindow {
 		
 		m_shell.setCursor(m_display.getSystemCursor(SWT.CURSOR_WAIT));
 
-		int fileType = ImageFiles.determinefileType(filename);
+		int fileType = ImageFiles.determineFileType(filename);
 		
 		try {
 			m_views.load(filename, fileType);

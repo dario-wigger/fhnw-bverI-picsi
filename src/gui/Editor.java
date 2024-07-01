@@ -132,7 +132,7 @@ public class Editor extends JFrame {
 		final int imageType = PNM.imageType(m_textPane.getText());
 		final int fileType = PNM.fileType(imageType);
 		
-		if (createNew || (m_path != null && fileType != ImageFiles.determinefileType(m_path))) {
+		if (createNew || (m_path != null && fileType != ImageFiles.determineFileType(m_path))) {
 			// this Swing thread doesn't have direct access to SWT display thread, hence we need syncExec
 			Display.getDefault().syncExec(new Runnable() {
 			    public void run() {
