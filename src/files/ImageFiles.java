@@ -30,9 +30,21 @@ public class ImageFiles {
 		"BMP (*.bmp)", "GIF (*.gif)", "ICO (*.ico)", "JPEG (*.jpg, *.jpeg, *.jfif)",
 		"PNG (*.png)", "TIFF (*.tif, *.tiff)" };
 	private static final String[] SAVE_FILTER_EXTENSIONS = new String[] {
-		"*.bmp", "*.gif", "*.ico", "*.jpg", "*.png", "*.tif" };
+			"*.bmp", "*.gif", "*.ico", "*.jpg", "*.png", "*.tif" };
 	private static final String[] SAVE_FILTER_NAMES = new String[] {
 		"BMP (*.bmp)", "GIF (*.gif)", "ICO (*.ico)", "JPEG (*.jpg)", "PNG (*.png)", "TIFF (*.tif)" };
+	private static final String[] SAVE_BIN_FILTER_EXTENSIONS = new String[] {
+		"*.bmp", "*.png" };
+	private static final String[] SAVE_BIN_FILTER_NAMES = new String[] {
+		"BMP (*.bmp)", "PNG (*.png)" };
+	private static final String[] SAVE_GRAY_FILTER_EXTENSIONS = new String[] {
+		"*.bmp", "*.gif", "*.png" };
+	private static final String[] SAVE_GRAY_FILTER_NAMES = new String[] {
+		"BMP (*.bmp)", "GIF (*.gif)", "PNG (*.png)" };
+	private static final String[] SAVE_RGBA_FILTER_EXTENSIONS = new String[] {
+		"*.png" };
+	private static final String[] SAVE_RGBA_FILTER_NAMES = new String[] {
+		"PNG (*.png)" };
 
 	private static class ImageFile {
 		private String m_fileTypeString;
@@ -268,11 +280,26 @@ public class ImageFiles {
 		for(ImageFile imgFile: s_imageFiles) {
 			if ((imgFile.m_writeTypes & imageType) == imageType) cnt++;
 		}
+		
+		String[] s = SAVE_FILTER_EXTENSIONS; 
+		switch(imageType) {
+		case Picsi.IMAGE_TYPE_BINARY:
+			s = SAVE_BIN_FILTER_EXTENSIONS;
+			break;
+		case Picsi.IMAGE_TYPE_GRAY:
+		case Picsi.IMAGE_TYPE_INDEXED:
+			s = SAVE_GRAY_FILTER_EXTENSIONS;
+			break;
+		case Picsi.IMAGE_TYPE_RGBA:
+			s = SAVE_RGBA_FILTER_EXTENSIONS;
+			break;
+		}
+
 		if (cnt == 0) {
-			return SAVE_FILTER_EXTENSIONS;
+			return s;
 		} else {
-			String[] exts = Arrays.copyOf(SAVE_FILTER_EXTENSIONS, SAVE_FILTER_EXTENSIONS.length + cnt);
-			cnt = SAVE_FILTER_EXTENSIONS.length;
+			String[] exts = Arrays.copyOf(s, s.length + cnt);
+			cnt = s.length;
 			for(ImageFile imgFile: s_imageFiles) {
 				if ((imgFile.m_writeTypes & imageType) == imageType) {
 					exts[cnt++] = "*." + imgFile.m_extension;
@@ -283,7 +310,7 @@ public class ImageFiles {
 	}
 	
 	/**
-	 * Returns open filter names
+	 * Returns save filter names
 	 * @param imageType IMAGE_TYPE_xyz
 	 * @return
 	 */
@@ -292,11 +319,26 @@ public class ImageFiles {
 		for(ImageFile imgFile: s_imageFiles) {
 			if ((imgFile.m_writeTypes & imageType) == imageType) cnt++;
 		}
+		
+		String[] s = SAVE_FILTER_NAMES; 
+		switch(imageType) {
+		case Picsi.IMAGE_TYPE_BINARY:
+			s = SAVE_BIN_FILTER_NAMES;
+			break;
+		case Picsi.IMAGE_TYPE_GRAY:
+		case Picsi.IMAGE_TYPE_INDEXED:
+			s = SAVE_GRAY_FILTER_NAMES;
+			break;
+		case Picsi.IMAGE_TYPE_RGBA:
+			s = SAVE_RGBA_FILTER_NAMES;
+			break;
+		}
+
 		if (cnt == 0) {
-			return SAVE_FILTER_NAMES;
+			return s;
 		} else {
-			String[] exts = Arrays.copyOf(SAVE_FILTER_NAMES, SAVE_FILTER_NAMES.length + cnt);
-			cnt = SAVE_FILTER_NAMES.length;
+			String[] exts = Arrays.copyOf(s, s.length + cnt);
+			cnt = s.length;
 			for(ImageFile imgFile: s_imageFiles) {
 				if ((imgFile.m_writeTypes & imageType) == imageType) {
 					exts[cnt++] = imgFile.m_fileTypeString + " (*." + imgFile.m_extension + ")";
