@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.ImageData;
 
+import imageprocessing.ImageProcessing;
 import main.Picsi;
 
 /**
@@ -126,6 +128,44 @@ public class ImageFiles {
 		}
 		
 		return SWT.IMAGE_UNDEFINED;
+	}
+	
+	/**
+	 * Read image from file with given filename
+	 * @param filename
+	 * @return image
+	 * @throws Exception
+	 */
+	public static ImageData read(String filename) throws Exception {
+		final int fileType = determineFileType(filename);
+		IImageFile imageFile = createImageFile(fileType);
+		return imageFile.read(filename);
+	}
+	
+	/**
+	 * Write image in file with given filename
+	 * @param imageData image
+	 * @param filename
+	 * @throws Exception
+	 */
+	public static void write(ImageData imageData, String filename) throws Exception {
+		final int imageType = ImageProcessing.determineImageType(imageData);
+		
+		write(imageData, imageType, filename);
+	}
+	
+	/**
+	 * Write image of type imageType in file with given filename.
+	 * Not used by the GUI.
+	 * @param imageData image
+	 * @param imageType
+	 * @param filename
+	 * @throws Exception
+	 */
+	public static void write(ImageData imageData, int imageType, String filename) throws Exception {
+		final int fileType = determineFileType(filename);
+		IImageFile imageFile = createImageFile(fileType);
+		imageFile.save(filename, fileType, imageData, imageType);
 	}
 	
 	/**
