@@ -1,6 +1,8 @@
 package gui;
 
 import imageprocessing.bayerpattern.Debayering;
+import imageprocessing.filter.GaussFilter;
+import imageprocessing.filter.MedianFilter;
 import imageprocessing.patternmatching.PatternMatching;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MenuItem;
@@ -36,6 +38,8 @@ public class ImageMenu extends UserMenu {
 
 		add("Debayering\tCtrl+D", 								SWT.CTRL | 'D', new Debayering());
 		add("&Pattern Matching", 								SWT.CTRL | 'M', new PatternMatching());
+		add("&Gauss Filter", 									SWT.CTRL | 'G', new GaussFilter());
+		add("&Median Filter", 									SWT.CTRL | 'G', new MedianFilter());
 		// TODO add here further image processing entries (they are inserted into the Image menu)
 	}
 }
