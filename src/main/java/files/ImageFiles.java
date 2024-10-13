@@ -11,14 +11,14 @@ import main.Picsi;
 
 /**
  * Management of image files
- * 
+ *
  * @author Christoph Stamm
  *
  */
 public class ImageFiles {
-	private static final int FirstUserfileType = 100; 
+	private static final int FirstUserfileType = 100;
 	// extension of SWT.IMAGE_XXX
-	public static int IMAGE_PBM = SWT.IMAGE_UNDEFINED; 
+	public static int IMAGE_PBM = SWT.IMAGE_UNDEFINED;
 	public static int IMAGE_PGM = SWT.IMAGE_UNDEFINED;
 	public static int IMAGE_PPM = SWT.IMAGE_UNDEFINED;
 
@@ -52,7 +52,7 @@ public class ImageFiles {
 		private Class<? extends IImageFile> m_cls;
 		private boolean m_read;						// allows reading
 		private int m_writeTypes;					// allowed image types for writing: IMAGE_TYPE_xyz | IMAGE_TYPE_abc
-		
+
 		public ImageFile(String fileTypeString, String ext, Class<? extends IImageFile> cls, boolean read, int writeTypes) {
 			assert ext.charAt(0) != '.' : "wrong extension";
 			m_fileTypeString = fileTypeString;
@@ -61,15 +61,15 @@ public class ImageFiles {
 			m_read = read;
 			m_writeTypes = writeTypes;
 		}
-		
+
 		public IImageFile createImageFile() throws Exception {
 			return m_cls.getDeclaredConstructor().newInstance();
 		}
-		
+
 	}
-	
+
 	private static ArrayList<ImageFile> s_imageFiles = new ArrayList<>();
-	
+
 	/**
 	 * Register user specific image files
 	 */
@@ -77,9 +77,11 @@ public class ImageFiles {
 		IMAGE_PBM = registerImageFile("PBM", "pbm", PNM.class, true, Picsi.IMAGE_TYPE_BINARY);
 		IMAGE_PGM = registerImageFile("PGM", "pgm", PNM.class, true, Picsi.IMAGE_TYPE_GRAY);
 		IMAGE_PPM = registerImageFile("PPM", "ppm", PNM.class, true, Picsi.IMAGE_TYPE_RGB);
+		registerImageFile("Raw", "raw", Raw.class, true, 0);
+		registerImageFile("Huf", "huf", Huffman.class, true, Picsi.IMAGE_TYPE_GRAY);
 		// TODO call registerImageFile(...) for each user specific image file once
 	}
-	
+
 	/**
 	 * Registers new image file
 	 * @param fileTypeString short readable string (e.g. "TIFF")
@@ -99,7 +101,7 @@ public class ImageFiles {
 	 * Creates new image file based on file type
 	 * @param fileType
 	 * @return new image file
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public static IImageFile createImageFile(int fileType) throws Exception {
 		if (fileType < FirstUserfileType) {
@@ -111,7 +113,7 @@ public class ImageFiles {
 			throw new Exception("invalid fileType");
 		}
 	}
-	
+
 	/**
 	 * Determine file type by file name extension
 	 * @param filename
@@ -119,7 +121,7 @@ public class ImageFiles {
 	 */
 	public static int determineFileType(String filename) {
 		String name = filename.toLowerCase();
-	
+
 		// check system file types
 		if (name.endsWith("bmp"))
 			return SWT.IMAGE_BMP;
@@ -133,15 +135,15 @@ public class ImageFiles {
 			return SWT.IMAGE_PNG;
 		if (name.endsWith("tif") || name.endsWith("tiff"))
 			return SWT.IMAGE_TIFF;
-		
+
 		// check user file types
 		for(int i = 0; i < s_imageFiles.size(); i++) {
 			if (name.endsWith(s_imageFiles.get(i).m_extension)) return FirstUserfileType + i;
 		}
-		
+
 		return SWT.IMAGE_UNDEFINED;
 	}
-	
+
 	/**
 	 * Read image from file with given filename
 	 * @param filename
@@ -153,7 +155,7 @@ public class ImageFiles {
 		IImageFile imageFile = createImageFile(fileType);
 		return imageFile.read(filename);
 	}
-	
+
 	/**
 	 * Write image in file with given filename
 	 * @param imageData image
@@ -162,10 +164,10 @@ public class ImageFiles {
 	 */
 	public static void write(ImageData imageData, String filename) throws Exception {
 		final int imageType = ImageProcessing.determineImageType(imageData);
-		
+
 		write(imageData, imageType, filename);
 	}
-	
+
 	/**
 	 * Write image of type imageType in file with given filename.
 	 * Not used by the GUI.
@@ -179,7 +181,7 @@ public class ImageFiles {
 		IImageFile imageFile = createImageFile(fileType);
 		imageFile.save(filename, fileType, imageData, imageType);
 	}
-	
+
 	/**
 	 * Determine save filter index by file name extension
 	 * @param saveFilterExtensions
@@ -188,14 +190,14 @@ public class ImageFiles {
 	 */
 	public static int determineSaveFilterIndex(String[] saveFilterExtensions, String filename) {
 		String name = filename.toLowerCase();
-		
+
 		for(int i=0; i < saveFilterExtensions.length; i++) {
 			String ext = saveFilterExtensions[i].substring(2);
 			if (name.endsWith(ext)) return i;
 		}
 		return 0;
 	}
-	
+
 	/**
 	 * Return file type specific short name
 	 * @param fileType
@@ -217,7 +219,7 @@ public class ImageFiles {
 			ImageFile imgFile = s_imageFiles.get(fileType - FirstUserfileType);
 			return imgFile.m_fileTypeString;
 		}
-		
+
 		return "";
 	}
 
@@ -246,7 +248,7 @@ public class ImageFiles {
 			return exts;
 		}
 	}
-	
+
 	/**
 	 * Returns open filter names
 	 * @return
@@ -280,8 +282,8 @@ public class ImageFiles {
 		for(ImageFile imgFile: s_imageFiles) {
 			if ((imgFile.m_writeTypes & imageType) == imageType) cnt++;
 		}
-		
-		String[] s = SAVE_FILTER_EXTENSIONS; 
+
+		String[] s = SAVE_FILTER_EXTENSIONS;
 		switch(imageType) {
 		case Picsi.IMAGE_TYPE_BINARY:
 			s = SAVE_BIN_FILTER_EXTENSIONS;
@@ -308,7 +310,7 @@ public class ImageFiles {
 			return exts;
 		}
 	}
-	
+
 	/**
 	 * Returns save filter names
 	 * @param imageType IMAGE_TYPE_xyz
@@ -319,8 +321,8 @@ public class ImageFiles {
 		for(ImageFile imgFile: s_imageFiles) {
 			if ((imgFile.m_writeTypes & imageType) == imageType) cnt++;
 		}
-		
-		String[] s = SAVE_FILTER_NAMES; 
+
+		String[] s = SAVE_FILTER_NAMES;
 		switch(imageType) {
 		case Picsi.IMAGE_TYPE_BINARY:
 			s = SAVE_BIN_FILTER_NAMES;
