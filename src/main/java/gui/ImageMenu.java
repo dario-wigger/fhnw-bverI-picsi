@@ -1,5 +1,6 @@
 package gui;
 
+import imageprocessing.EdgeDetection;
 import imageprocessing.bayerpattern.Debayering;
 import imageprocessing.filter.GaussFilter;
 import imageprocessing.filter.MedianFilter;
@@ -40,6 +41,7 @@ public class ImageMenu extends UserMenu {
 		add("&Pattern Matching", 								SWT.CTRL | 'M', new PatternMatching());
 		add("&Gauss Filter", 									SWT.CTRL | 'G', new GaussFilter());
 		add("&Median Filter", 									SWT.CTRL | 'G', new MedianFilter());
+		add("&Edge Detection", 								SWT.CTRL | 'E', new EdgeDetection());
 		// TODO add here further image processing entries (they are inserted into the Image menu)
 	}
 }
